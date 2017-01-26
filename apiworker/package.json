@@ -1,0 +1,20 @@
+{
+  "name": "apiworker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Alberto Pareja-Lecaros and Tavius Enterprises, LLC",
+  "license": "ISC",
+  "dependencies": {
+    "coffee-script": "^1.12.2",
+    "fast-csv": "^2.3.0",
+    "mws-api": "^2.1.0",
+    "pg": "^6.1.2",
+    "q": "^1.4.1",
+    "request": "^2.79.0",
+    "underscore": "^1.8.3"
+  }
+}
