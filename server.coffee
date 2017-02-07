@@ -19,58 +19,60 @@ app = express()
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
-app.use(session({
-	secret: config.COOKIE_SECRET
-	resave: false
-	saveUninitialized: false
-}))
 
-app.use(flash())
-app.use(passport.initialize())
-app.use(passport.session())
-app.use(compression())
-app.use(express.static('public'))
-app.use(csrf())
-app.use((req, res, next) ->
-	csrfToken = req.csrfToken()
-	res.cookie('XSRF-TOKEN', csrfToken)
-	res.locals.csrfToken = csrfToken
-	next()
-)
-app.use((req, res, next) ->
-	res.locals.messages = req.flash('error');
-	next();
-)
+if !config.IS_WORKER
+	app.use(session({
+		secret: config.COOKIE_SECRET
+		resave: false
+		saveUninitialized: false
+	}))
 
-app.set('views', __dirname + '/views')
-app.set('view engine', 'pug')
+	app.use(flash())
+	app.use(passport.initialize())
+	app.use(passport.session())
+	app.use(compression())
+	app.use(express.static('public'))
+	app.use(csrf())
+	app.use((req, res, next) ->
+		csrfToken = req.csrfToken()
+		res.cookie('XSRF-TOKEN', csrfToken)
+		res.locals.csrfToken = csrfToken
+		next()
+	)
+	app.use((req, res, next) ->
+		res.locals.messages = req.flash('error');
+		next();
+	)
 
-passport.use(new LocalStrategy({
-	usernameField: 'email'}, (email, password, done) ->
-		db.User.findOne({
-			where: { email: email }
-		}).then (user) ->
-			if !user
-				return done(null, false, { message: 'Incorrect username or password' })
-			userValues = user.dataValues
-			if userValues.hash == null
-				return done(null, userValues)
-			bcrypt.compare(password, userValues.hash)
-				.then (result) ->
-					if result
-						return done(null, userValues)
-					return done(null, false, { message: 'Incorrect username or password'})
-))
+	app.set('views', __dirname + '/views')
+	app.set('view engine', 'pug')
 
-passport.serializeUser((user, done) ->
-	done(null, user.id)
-)
+	passport.use(new LocalStrategy({
+		usernameField: 'email'}, (email, password, done) ->
+			db.User.findOne({
+				where: { email: email }
+			}).then (user) ->
+				if !user
+					return done(null, false, { message: 'Incorrect username or password' })
+				userValues = user.dataValues
+				if userValues.hash == null
+					return done(null, userValues)
+				bcrypt.compare(password, userValues.hash)
+					.then (result) ->
+						if result
+							return done(null, userValues)
+						return done(null, false, { message: 'Incorrect username or password'})
+	))
 
-passport.deserializeUser((id, done) ->
-	db.User.findById(id)
-	.then (user) ->
-		done(null, user.dataValues)
-)
+	passport.serializeUser((user, done) ->
+		done(null, user.id)
+	)
+
+	passport.deserializeUser((id, done) ->
+		db.User.findById(id)
+		.then (user) ->
+			done(null, user.dataValues)
+	)
 
 db.createTablesIfNotExist()
 

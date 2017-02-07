@@ -40,79 +40,68 @@
     extended: false
   }));
 
-  app.use(session({
-    secret: config.COOKIE_SECRET,
-    resave: false,
-    saveUninitialized: false
-  }));
-
-  app.use(flash());
-
-  app.use(passport.initialize());
-
-  app.use(passport.session());
-
-  app.use(compression());
-
-  app.use(express["static"]('public'));
-
-  app.use(csrf());
-
-  app.use(function(req, res, next) {
-    var csrfToken;
-    csrfToken = req.csrfToken();
-    res.cookie('XSRF-TOKEN', csrfToken);
-    res.locals.csrfToken = csrfToken;
-    return next();
-  });
-
-  app.use(function(req, res, next) {
-    res.locals.messages = req.flash('error');
-    return next();
-  });
-
-  app.set('views', __dirname + '/views');
-
-  app.set('view engine', 'pug');
-
-  passport.use(new LocalStrategy({
-    usernameField: 'email'
-  }, function(email, password, done) {
-    return db.User.findOne({
-      where: {
-        email: email
-      }
-    }).then(function(user) {
-      var userValues;
-      if (!user) {
-        return done(null, false, {
-          message: 'Incorrect username or password'
-        });
-      }
-      userValues = user.dataValues;
-      if (userValues.hash === null) {
-        return done(null, userValues);
-      }
-      return bcrypt.compare(password, userValues.hash).then(function(result) {
-        if (result) {
+  if (!config.IS_WORKER) {
+    app.use(session({
+      secret: config.COOKIE_SECRET,
+      resave: false,
+      saveUninitialized: false
+    }));
+    app.use(flash());
+    app.use(passport.initialize());
+    app.use(passport.session());
+    app.use(compression());
+    app.use(express["static"]('public'));
+    app.use(csrf());
+    app.use(function(req, res, next) {
+      var csrfToken;
+      csrfToken = req.csrfToken();
+      res.cookie('XSRF-TOKEN', csrfToken);
+      res.locals.csrfToken = csrfToken;
+      return next();
+    });
+    app.use(function(req, res, next) {
+      res.locals.messages = req.flash('error');
+      return next();
+    });
+    app.set('views', __dirname + '/views');
+    app.set('view engine', 'pug');
+    passport.use(new LocalStrategy({
+      usernameField: 'email'
+    }, function(email, password, done) {
+      return db.User.findOne({
+        where: {
+          email: email
+        }
+      }).then(function(user) {
+        var userValues;
+        if (!user) {
+          return done(null, false, {
+            message: 'Incorrect username or password'
+          });
+        }
+        userValues = user.dataValues;
+        if (userValues.hash === null) {
           return done(null, userValues);
         }
-        return done(null, false, {
-          message: 'Incorrect username or password'
+        return bcrypt.compare(password, userValues.hash).then(function(result) {
+          if (result) {
+            return done(null, userValues);
+          }
+          return done(null, false, {
+            message: 'Incorrect username or password'
+          });
         });
       });
+    }));
+    passport.serializeUser(function(user, done) {
+      return done(null, user.id);
     });
-  }));
-
-  passport.serializeUser(function(user, done) {
-    return done(null, user.id);
-  });
-
-  passport.deserializeUser(function(id, done) {
-    return db.User.findById(id).then(function(user) {
-      return done(null, user.dataValues);
+    passport.deserializeUser(function(id, done) {
+      return db.User.findById(id).then(function(user) {
+        return done(null, user.dataValues);
+      });
     });
-  });
+  }
 
   db.createTablesIfNotExist();
 
