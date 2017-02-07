@@ -35,7 +35,7 @@
     var currentTime, fbaFeesThirtyDaysAgo, fbaFeesThirtyDaysAgoTimestamp;
     currentTime = new Date();
     fbaFeesThirtyDaysAgo = new Date(currentTime.getTime() - (720 * 60 * 60 * 1000));
-    fbaFeesThirtyDaysAgoTimestamp = fbaFeesStartDate.toISOString();
+    fbaFeesThirtyDaysAgoTimestamp = fbaFeesThirtyDaysAgo.toISOString();
     console.log(fbaFeesThirtyDaysAgoTimestamp);
     return Q.all([
       mws.Reports.RequestReport({

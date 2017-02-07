@@ -27,7 +27,7 @@ if config.IS_WORKER
 module.exports.requestReports = ->
 	currentTime = new Date()
 	fbaFeesThirtyDaysAgo = new Date(currentTime.getTime() - (720 * 60 * 60 * 1000))
-	fbaFeesThirtyDaysAgoTimestamp = fbaFeesStartDate.toISOString()
+	fbaFeesThirtyDaysAgoTimestamp = fbaFeesThirtyDaysAgo.toISOString()
 	console.log fbaFeesThirtyDaysAgoTimestamp
 
 	Q.all([mws.Reports.RequestReport({ReportType: "_GET_FBA_ESTIMATED_FBA_FEES_TXT_DATA_"}), mws.Reports.RequestReport({
