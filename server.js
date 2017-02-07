@@ -116,12 +116,12 @@
       return res.sendStatus(200);
     });
     app.post('/reports/request', function(req, res) {
-      return apiworker.requestReports().then(function(res) {
+      return apiworker.requestReports().then(function(result) {
         return res.sendStatus(200);
       });
     });
     app.post('/reports/getlatest', function(req, res) {
-      return apiworker.getLatestReports().then(function(res) {
+      return apiworker.getLatestReports().then(function(result) {
         return res.sendStatus(200);
       });
     });

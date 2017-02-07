@@ -169,13 +169,13 @@ if config.IS_WORKER
 
 	app.post('/reports/request', (req, res) ->
 		apiworker.requestReports()
-			.then (res) ->
+			.then (result) ->
 				res.sendStatus(200)
 	)
 
 	app.post('/reports/getlatest', (req, res) ->
 		apiworker.getLatestReports()
-			.then (res) ->
+			.then (result) ->
 				res.sendStatus(200)
 	)
 else
