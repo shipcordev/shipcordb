@@ -2,7 +2,7 @@ version: 1
 cron:
  - name: "requestreports"
    url: "/reports/request"
-   schedule: "40 * * * *"
+   schedule: "50 * * * *"
  - name: "getreports"
    url: "/reports/getlatest"
    schedule: "*/5 * * * *"
