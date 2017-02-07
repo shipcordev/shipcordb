@@ -1,7 +1,7 @@
 Q = require('q')
 MWSClient = require('mws-api')
 
-config = require('./config')
+config = require('../config')
 
 ###
 	First, request both reports, then get report request list, then get each
@@ -13,25 +13,25 @@ config = require('./config')
 
 
 ###
-mws = new MWSClient({
-	accessKeyId: config.AWS_ACCESS_KEY
-	secretAccessKey: config.MWS_SECRET_KEY
-	merchantId: config.SELLER_ID
-	meta: 
-		retry: true
-		next: true
-		limit: Infinity	
-})
+if config.IS_WORKER
+	mws = new MWSClient({
+		accessKeyId: config.AWS_ACCESS_KEY
+		secretAccessKey: config.MWS_SECRET_KEY
+		merchantId: config.SELLER_ID
+		meta: 
+			retry: true
+			next: true
+			limit: Infinity	
+	})
 
-currentTime = new Date()
-fbaFeesThirtyDaysAgo = new Date(currentTime.getTime() - (720 * 60 * 60 * 1000))
-fbaFeesThirtyDaysAgoTimestamp = fbaFeesStartDate.toISOString()
-console.log fbaFeesThirtyDaysAgoTimestamp
+module.exports.requestReports = ->
+	currentTime = new Date()
+	fbaFeesThirtyDaysAgo = new Date(currentTime.getTime() - (720 * 60 * 60 * 1000))
+	fbaFeesThirtyDaysAgoTimestamp = fbaFeesStartDate.toISOString()
+	console.log fbaFeesThirtyDaysAgoTimestamp
 
-Q.all([mws.Reports.RequestReport({ReportType: "_GET_FBA_ESTIMATED_FBA_FEES_TXT_DATA_"}), mws.Reports.RequestReport({
-	ReportType: "_GET_FBA_FULFILLMENT_INVENTORY_HEALTH_DATA_"
-	StartDate: fbaFeesThirtyDaysAgoTimestamp})])
-.spread (fbaFeesData, inventoryHealthData) ->
-	console.log fbaFeesData
-	console.log inventoryHealthData
-	console.log "Report Requests Complete"
+	Q.all([mws.Reports.RequestReport({ReportType: "_GET_FBA_ESTIMATED_FBA_FEES_TXT_DATA_"}), mws.Reports.RequestReport({
+		ReportType: "_GET_FBA_FULFILLMENT_INVENTORY_HEALTH_DATA_"
+		StartDate: fbaFeesThirtyDaysAgoTimestamp})])
+	.spread (fbaFeesData, inventoryHealthData) ->
+		console.log "Report Requests Complete"

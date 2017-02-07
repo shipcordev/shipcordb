@@ -4,11 +4,12 @@ csv = require('fast-csv')
 pg = require('pg')
 MWSClient = require('mws-api')
 
-config = require('./config')
+config = require('../config')
 
 client = new pg.Client(config.DATABASE_URL)
 
-fbaFeesColumns = ["\"snapshot-date\"", 
+fbaFeesColumns = ["seller",
+	"\"snapshot-date\"", 
 	"sku",
 	"fnsku",
 	"asin",
@@ -39,7 +40,8 @@ fbaFeesColumns = ["\"snapshot-date\"",
 	"\"estimated-future-weight-handling-fee-per-unit\"",
 	"\"expected-future-fulfillment-fee-per-unit\""]
 
-inventoryHealthColumns = ["\"snapshot-date\"", 
+inventoryHealthColumns = ["seller",
+	"\"snapshot-date\"", 
 	"sku",
 	"fnsku",
 	"asin",
@@ -127,12 +129,16 @@ getReportList = (reportTypes, delay) ->
 						count = 0
 						insertValues = new Array()
 						tableToInsert = "inventory-health"
+						insertValues.push("oredroc")
+						insertPlaceholders.push("$" + ++count)
 						if !_.contains(Object.keys(data), "snapshot-date")
+							tableToInsert = "fba-fees"
 							insertValues.push(formattedDate)
 							insertPlaceholders.push("$" + ++count)
-							tableToInsert = "fba-fees"
 						for key in Object.keys(data)
-							if key == "is-hazmat"
+							if key == "snapshot-date"
+								insertValues.push(formattedDate)
+							else if key == "is-hazmat"
 								if data[key] == 'N'
 									insertValues.push(false)
 								else
@@ -144,12 +150,14 @@ getReportList = (reportTypes, delay) ->
 							insertPlaceholders.push("$" + ++count)
 						queryString = ''
 						if tableToInsert == "fba-fees"
-							queryString = 'INSERT INTO "' + tableToInsert + '"(' + fbaFeesColumns.join(',') + ') VALUES (' + insertPlaceholders.join(',') + ')'
+							queryString = 'INSERT INTO "' + tableToInsert + '"(' + fbaFeesColumns.join(',') + ') VALUES (' + insertPlaceholders.join(',') + ') RETURNING id'
 						else
-							queryString = 'INSERT INTO "' + tableToInsert + '"(' + inventoryHealthColumns.join(',') + ') VALUES (' + insertPlaceholders.join(',') + ')'
+							queryString = 'INSERT INTO "' + tableToInsert + '"(' + inventoryHealthColumns.join(',') + ') VALUES (' + insertPlaceholders.join(',') + ') RETURNING id'
 						queryParams.push({
+							tableName: tableToInsert
 							queryString: queryString
 							insertValues: insertValues
+							date: formattedDate
 						})
 					)
 					.on("error", (data) -> 
@@ -161,7 +169,7 @@ getReportList = (reportTypes, delay) ->
 					)
 					deferred.promise
 				.then (queries) ->
-					Q.all(_.map(queries, (query) ->
+					Q.allSettled(_.map(queries, (query) ->
 						deferred = Q.defer()
 						client.query(
 							query.queryString, query.insertValues
@@ -170,12 +178,34 @@ getReportList = (reportTypes, delay) ->
 								console.log err
 								deferred.reject(new Error(err))
 							else
-								deferred.resolve(result)
+								deferred.resolve({
+									tableName: query.tableName
+									id: result.rows[0].id
+									date: query.date
+								})
 						)
 						deferred.promise
 					))
 				)).then (results) ->
-				client.end()
+					deferred = Q.defer()
+					numReportsCompleted = 0
+					for result in results
+						if result.state == "fulfilled"
+							console.log result.value
+							if result.value.length > 0
+								firstResult = result.value[0]
+								firstResultValue = firstResult.value
+								client.query('INSERT INTO \"report-snapshot-dates\"(seller, type, \"snapshot-date\") VALUES (\'oredroc\', \'' + firstResultValue.tableName + '\',\'' + firstResultValue.date + '\')')
+									.then (err, result) ->
+										numReportsCompleted++
+										if numReportsCompleted == results.length
+											deferred.resolve({
+												numReports: numReportsCompleted
+											})
+					deferred.promise
+				.then (result) ->
+					console.log "Reports completed: " + result.numReports		
+					client.end()
 			.done()
 
 ###
@@ -188,21 +218,23 @@ getReportList = (reportTypes, delay) ->
 
 
 ###
-mws = new MWSClient({
-	accessKeyId: config.AWS_ACCESS_KEY
-	secretAccessKey: config.MWS_SECRET_KEY
-	merchantId: config.SELLER_ID
-	meta: 
-		retry: true
-		next: true
-		limit: Infinity	
-})
+if config.IS_WORKER
+	mws = new MWSClient({
+		accessKeyId: config.AWS_ACCESS_KEY
+		secretAccessKey: config.MWS_SECRET_KEY
+		merchantId: config.SELLER_ID
+		meta: 
+			retry: true
+			next: true
+			limit: Infinity	
+	})
 
-currentTime = new Date()
-currentTimestamp = currentTime.toISOString()
+module.exports.getReports = ->
+	currentTime = new Date()
+	currentTimestamp = currentTime.toISOString()
 
-reportTypes = ["_GET_FBA_ESTIMATED_FBA_FEES_TXT_DATA_", "_GET_FBA_FULFILLMENT_INVENTORY_HEALTH_DATA_"]
+	reportTypes = ["_GET_FBA_ESTIMATED_FBA_FEES_TXT_DATA_", "_GET_FBA_FULFILLMENT_INVENTORY_HEALTH_DATA_"]
 
-client.connect()
+	client.connect()
 
-getReportList(reportTypes, 60000)
+	getReportList(reportTypes, 60000)

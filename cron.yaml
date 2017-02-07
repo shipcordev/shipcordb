@@ -1,0 +1,8 @@
+version: 1
+cron:
+ - name: "requestreports"
+   url: "/reports/request"
+   schedule: "0 12 * * *"
+ - name: "getreports"
+   url: "/reports/getlatest"
+   schedule: "0 23 * * *"
