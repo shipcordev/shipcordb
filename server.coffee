@@ -81,8 +81,8 @@ outputReorderColumns = ["snapshot-date"
  ,"product-name"
  ,"Sales Rank"
  ,"product-group"
- ,"your-price"
- ,"lowest-afn-new-price"
+ ,"Our Current Price"
+ ,"Lowest Prime Price"
  ,"total-units-shipped-last-24-hrs"
  ,"total-units-shipped-last-7-days"
  ,"total-units-shipped-last-30-days"
@@ -94,13 +94,13 @@ outputReorderColumns = ["snapshot-date"
  ,"In Stock or OOS - Crenstone"
  ,"InBound Crenstone"
  ,"Days OOS - Crenstone"
- ,"Last 30 days of sales when in stock (-10 sales)"
+ ,"Last 30 days of sales when in stock - Crenstone"
  ,"In Stock or OOS - Oredroc"
  ,"InBound Oredroc"
  ,"Days OOS - Oredroc"
  ,"Last 30 days of sales when in stock - Oredroc"
  ,"Total Stock - Both Accounts"
- ,"Total Sales both accounts - 30days"
+ ,"Total Sales both accounts - 30 days"
  ,"Seasonal Tags"
  ,"OEM MFG Part Number"
  ,"OEM MFG"
@@ -236,11 +236,17 @@ else
 									res.redirect('/')
 								else
 									worksheets = []
+									reorderReport = []
+									reorderReport.push(outputReorderColumns)
+									reorderItems = []
 									if oredrocInventoryResult.length > 0
 										columnNames = _.filter(Object.keys(oredrocInventoryResult[0]), (key) -> key != 'id' and key != 'seller')
 										data = new Array()
 										data.push(columnNames)
 										for row in oredrocInventoryResult
+											uniqueKey = "oredroc:" + row['asin'] + ":" + row['sku']
+											if !_.contains(Object.keys(reorderItems), uniqueKey)
+												reorderItems.push(uniqueKey: {})
 											rowData = new Array()
 											for key in Object.keys(row)
 												if key == 'snapshot-date'
@@ -249,6 +255,7 @@ else
 													rowData.push(formattedDate)
 												else if key != 'id' and key != 'seller'
 													rowData.push(row[key])
+												reorderItems[uniqueKey][key] = row[key]
 											data.push(rowData)
 										worksheets.push({name: "Oredroc Inventory Health", data: data})
 									if oredrocFeesResult.length > 0
@@ -256,6 +263,9 @@ else
 										data = new Array()
 										data.push(columnNames)
 										for row in oredrocFeesResult
+											uniqueKey = "oredroc:" + row['asin'] + ":" + row['sku']
+											if !_.contains(Object.keys(reorderItems), uniqueKey)
+												reorderItems.push(uniqueKey: {})
 											rowData = new Array()
 											for key in Object.keys(row)
 												if key == 'snapshot-date'
@@ -264,6 +274,7 @@ else
 													rowData.push(formattedDate)
 												else if key != 'id' and key != 'seller'
 													rowData.push(row[key])
+												reorderItems[uniqueKey][key] = row[key]
 											data.push(rowData)
 										worksheets.push({name: "Oredroc FBA Fees", data: data})
 									if crenstoneInventoryResult.length > 0
@@ -271,6 +282,9 @@ else
 										data = new Array()
 										data.push(columnNames)
 										for row in crenstoneInventoryResult
+											uniqueKey = "crenstone:" + row['asin'] + ":" + row['sku']
+											if !_.contains(Object.keys(reorderItems), uniqueKey)
+												reorderItems.push(uniqueKey: {})
 											rowData = new Array()
 											for key in Object.keys(row)
 												if key == 'snapshot-date'
@@ -279,6 +293,7 @@ else
 													rowData.push(formattedDate)
 												else if key != 'id' and key != 'seller'
 													rowData.push(row[key])
+												reorderItems[uniqueKey][key] = row[key]
 											data.push(rowData)
 										worksheets.push({name: "Crenstone Inventory Health", data: data})
 									if crenstoneFeesResult.length > 0
@@ -286,6 +301,9 @@ else
 										data = new Array()
 										data.push(columnNames)
 										for row in crenstoneFeesResult
+											uniqueKey = "crenstone:" + row['asin'] + ":" + row['sku']
+											if !_.contains(Object.keys(reorderItems), uniqueKey)
+												reorderItems.push(uniqueKey: {})
 											rowData = new Array()
 											for key in Object.keys(row)
 												if key == 'snapshot-date'
@@ -294,6 +312,7 @@ else
 													rowData.push(formattedDate)
 												else if key != 'id' and key != 'seller'
 													rowData.push(row[key])
+												reorderItems[uniqueKey][key] = row[key]
 											data.push(rowData)
 										worksheets.push({name: "Crenstone FBA Fees", data: data})
 

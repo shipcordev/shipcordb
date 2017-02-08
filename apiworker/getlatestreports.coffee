@@ -123,13 +123,13 @@ getReportList = (reportTypes, delay) ->
 					date = new Date(reportIdAndTimestampsByType[reportType].timestamp);
 					formattedDate = date.getFullYear()+'-' + (date.getMonth()+1) + '-'+date.getDate();
 					queryParams = []
-					csv.fromString(report.result, { headers: true, delimiter: '\t'})
+					csv.fromString(report.result, { headers: true, delimiter: '\t', quote: null})
 					.on("data", (data) ->
 						insertPlaceholders = new Array()
 						count = 0
 						insertValues = new Array()
 						tableToInsert = "inventory-health"
-						insertValues.push("oredroc")
+						insertValues.push(config.SELLER_ACCOUNT)
 						insertPlaceholders.push("$" + ++count)
 						if !_.contains(Object.keys(data), "snapshot-date")
 							tableToInsert = "fba-fees"

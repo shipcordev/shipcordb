@@ -64,14 +64,15 @@
             queryParams = [];
             csv.fromString(report.result, {
               headers: true,
-              delimiter: '\t'
+              delimiter: '\t',
+              quote: null
             }).on("data", function(data) {
               var count, insertPlaceholders, insertValues, j, key, len1, queryString, ref1, tableToInsert;
               insertPlaceholders = new Array();
               count = 0;
               insertValues = new Array();
               tableToInsert = "inventory-health";
-              insertValues.push("oredroc");
+              insertValues.push(config.SELLER_ACCOUNT);
               insertPlaceholders.push("$" + ++count);
               if (!_.contains(Object.keys(data), "snapshot-date")) {
                 tableToInsert = "fba-fees";

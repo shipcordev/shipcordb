@@ -105,7 +105,7 @@
 
   db.createTablesIfNotExist();
 
-  outputReorderColumns = ["snapshot-date", "ASIN", "product-name", "Sales Rank", "product-group", "your-price", "lowest-afn-new-price", "total-units-shipped-last-24-hrs", "total-units-shipped-last-7-days", "total-units-shipped-last-30-days", "total-units-shipped-last-90-days", "total-units-shipped-last-180-days", "total-units-shipped-last-365-days", "num-afn-new-sellers", "Remove from Restock report", "In Stock or OOS - Crenstone", "InBound Crenstone", "Days OOS - Crenstone", "Last 30 days of sales when in stock (-10 sales)", "In Stock or OOS - Oredroc", "InBound Oredroc", "Days OOS - Oredroc", "Last 30 days of sales when in stock - Oredroc", "Total Stock - Both Accounts", "Total Sales both accounts - 30days", "Seasonal Tags", "OEM MFG Part Number", "OEM MFG", "Vendor Part number", "Item Description", "Vendor Name", "Vendor Price", "Quantity needed per ASIN", "Total price of ASIN", "Quantity needed for restock order 3x on 30 day sales", "Quantity needed for restock order 6x on 30 day sales", "Closeout / Retail Tag", "Can Order Again?", "Selling in accounts", "Has stock in accounts", "Crenstone SKU", "Crenstone FNSKU", "your-price", "lowest-afn-new-price", "Below Current Price?", "brand", "your-price", "sales-price", "estimated-fee-total", "estimated-future-fee (Current Selling on Amazon + Future Fulfillment fees)", "estimated-shipping-cost", "total-inventory-cost", "overhead-rate", "profit", "future-profit", "crenstone-units-shipped-last-24-hrs", "crenstone-units-shipped-last-7-days", "crenstone-units-shipped-last-30-days", "crenstone-units-shipped-last-90-days", "crenstone-units-shipped-last-180-days", "crenstone-units-shipped-last-365-days", "your-price", "lowest-afn-new-price", "Below Current Price?", "brand", "your-price", "sales-price", "estimated-fee-total", "estimated-future-fee (Current Selling on Amazon + Future Fulfillment fees)", "estimated-shipping-cost", "total-inventory-cost", "overhead-rate", "profit", "future-profit", "oredroc-units-shipped-last-24-hrs", "oredroc-units-shipped-last-7-days", "oredroc-units-shipped-last-30-days", "oredroc-units-shipped-last-90-days", "oredroc-units-shipped-last-180-days", "oredroc-units-shipped-last-365-days"];
+  outputReorderColumns = ["snapshot-date", "ASIN", "product-name", "Sales Rank", "product-group", "Our Current Price", "Lowest Prime Price", "total-units-shipped-last-24-hrs", "total-units-shipped-last-7-days", "total-units-shipped-last-30-days", "total-units-shipped-last-90-days", "total-units-shipped-last-180-days", "total-units-shipped-last-365-days", "num-afn-new-sellers", "Remove from Restock report", "In Stock or OOS - Crenstone", "InBound Crenstone", "Days OOS - Crenstone", "Last 30 days of sales when in stock - Crenstone", "In Stock or OOS - Oredroc", "InBound Oredroc", "Days OOS - Oredroc", "Last 30 days of sales when in stock - Oredroc", "Total Stock - Both Accounts", "Total Sales both accounts - 30 days", "Seasonal Tags", "OEM MFG Part Number", "OEM MFG", "Vendor Part number", "Item Description", "Vendor Name", "Vendor Price", "Quantity needed per ASIN", "Total price of ASIN", "Quantity needed for restock order 3x on 30 day sales", "Quantity needed for restock order 6x on 30 day sales", "Closeout / Retail Tag", "Can Order Again?", "Selling in accounts", "Has stock in accounts", "Crenstone SKU", "Crenstone FNSKU", "your-price", "lowest-afn-new-price", "Below Current Price?", "brand", "your-price", "sales-price", "estimated-fee-total", "estimated-future-fee (Current Selling on Amazon + Future Fulfillment fees)", "estimated-shipping-cost", "total-inventory-cost", "overhead-rate", "profit", "future-profit", "crenstone-units-shipped-last-24-hrs", "crenstone-units-shipped-last-7-days", "crenstone-units-shipped-last-30-days", "crenstone-units-shipped-last-90-days", "crenstone-units-shipped-last-180-days", "crenstone-units-shipped-last-365-days", "your-price", "lowest-afn-new-price", "Below Current Price?", "brand", "your-price", "sales-price", "estimated-fee-total", "estimated-future-fee (Current Selling on Amazon + Future Fulfillment fees)", "estimated-shipping-cost", "total-inventory-cost", "overhead-rate", "profit", "future-profit", "oredroc-units-shipped-last-24-hrs", "oredroc-units-shipped-last-7-days", "oredroc-units-shipped-last-30-days", "oredroc-units-shipped-last-90-days", "oredroc-units-shipped-last-180-days", "oredroc-units-shipped-last-365-days"];
 
   app.get('/ping', function(req, res) {
     return res.sendStatus(200);
@@ -186,11 +186,14 @@
                 type: db.sequelize.QueryTypes.SELECT
               })
             ]).spread(function(oredrocInventoryResult, oredrocFeesResult, crenstoneInventoryResult, crenstoneFeesResult) {
-              var buffer, columnNames, data, i, j, k, key, l, len, len1, len2, len3, len4, len5, len6, len7, m, n, o, p, ref, ref1, ref2, ref3, row, rowData, worksheets;
+              var buffer, columnNames, data, i, j, k, key, l, len, len1, len2, len3, len4, len5, len6, len7, m, n, o, p, ref, ref1, ref2, ref3, reorderItems, reorderReport, row, rowData, uniqueKey, worksheets;
               if (oredrocInventoryResult.length === 0 && oredrocFeesResult.length === 0 && crenstoneInventoryResult.length === 0 && crenstoneFeesResult.length === 0) {
                 return res.redirect('/');
               } else {
                 worksheets = [];
+                reorderReport = [];
+                reorderReport.push(outputReorderColumns);
+                reorderItems = [];
                 if (oredrocInventoryResult.length > 0) {
                   columnNames = _.filter(Object.keys(oredrocInventoryResult[0]), function(key) {
                     return key !== 'id' && key !== 'seller';
@@ -199,6 +202,12 @@
                   data.push(columnNames);
                   for (i = 0, len = oredrocInventoryResult.length; i < len; i++) {
                     row = oredrocInventoryResult[i];
+                    uniqueKey = "oredroc:" + row['asin'] + ":" + row['sku'];
+                    if (!_.contains(Object.keys(reorderItems), uniqueKey)) {
+                      reorderItems.push({
+                        uniqueKey: {}
+                      });
+                    }
                     rowData = new Array();
                     ref = Object.keys(row);
                     for (j = 0, len1 = ref.length; j < len1; j++) {
@@ -210,6 +219,7 @@
                       } else if (key !== 'id' && key !== 'seller') {
                         rowData.push(row[key]);
                       }
+                      reorderItems[uniqueKey][key] = row[key];
                     }
                     data.push(rowData);
                   }
@@ -226,6 +236,12 @@
                   data.push(columnNames);
                   for (k = 0, len2 = oredrocFeesResult.length; k < len2; k++) {
                     row = oredrocFeesResult[k];
+                    uniqueKey = "oredroc:" + row['asin'] + ":" + row['sku'];
+                    if (!_.contains(Object.keys(reorderItems), uniqueKey)) {
+                      reorderItems.push({
+                        uniqueKey: {}
+                      });
+                    }
                     rowData = new Array();
                     ref1 = Object.keys(row);
                     for (l = 0, len3 = ref1.length; l < len3; l++) {
@@ -237,6 +253,7 @@
                       } else if (key !== 'id' && key !== 'seller') {
                         rowData.push(row[key]);
                       }
+                      reorderItems[uniqueKey][key] = row[key];
                     }
                     data.push(rowData);
                   }
@@ -253,6 +270,12 @@
                   data.push(columnNames);
                   for (m = 0, len4 = crenstoneInventoryResult.length; m < len4; m++) {
                     row = crenstoneInventoryResult[m];
+                    uniqueKey = "crenstone:" + row['asin'] + ":" + row['sku'];
+                    if (!_.contains(Object.keys(reorderItems), uniqueKey)) {
+                      reorderItems.push({
+                        uniqueKey: {}
+                      });
+                    }
                     rowData = new Array();
                     ref2 = Object.keys(row);
                     for (n = 0, len5 = ref2.length; n < len5; n++) {
@@ -264,6 +287,7 @@
                       } else if (key !== 'id' && key !== 'seller') {
                         rowData.push(row[key]);
                       }
+                      reorderItems[uniqueKey][key] = row[key];
                     }
                     data.push(rowData);
                   }
@@ -280,6 +304,12 @@
                   data.push(columnNames);
                   for (o = 0, len6 = crenstoneFeesResult.length; o < len6; o++) {
                     row = crenstoneFeesResult[o];
+                    uniqueKey = "crenstone:" + row['asin'] + ":" + row['sku'];
+                    if (!_.contains(Object.keys(reorderItems), uniqueKey)) {
+                      reorderItems.push({
+                        uniqueKey: {}
+                      });
+                    }
                     rowData = new Array();
                     ref3 = Object.keys(row);
                     for (p = 0, len7 = ref3.length; p < len7; p++) {
@@ -291,6 +321,7 @@
                       } else if (key !== 'id' && key !== 'seller') {
                         rowData.push(row[key]);
                       }
+                      reorderItems[uniqueKey][key] = row[key];
                     }
                     data.push(rowData);
                   }
