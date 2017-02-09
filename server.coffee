@@ -231,7 +231,6 @@ else
 								db.sequelize.query(crenstoneFeesByDateQuery, { type: db.sequelize.QueryTypes.SELECT})						
 							])
 							.spread (oredrocInventoryResult, oredrocFeesResult, crenstoneInventoryResult, crenstoneFeesResult) ->
-				
 								if oredrocInventoryResult.length == 0 and oredrocFeesResult.length == 0 and crenstoneInventoryResult.length == 0 and crenstoneFeesResult.length == 0
 									res.redirect('/')
 								else
@@ -246,7 +245,7 @@ else
 										for row in oredrocInventoryResult
 											uniqueKey = "oredroc:" + row['asin'] + ":" + row['sku']
 											if !_.contains(Object.keys(reorderItems), uniqueKey)
-												reorderItems.push(uniqueKey: {})
+												reorderItems[uniqueKey] = {}
 											rowData = new Array()
 											for key in Object.keys(row)
 												if key == 'snapshot-date'
@@ -265,7 +264,7 @@ else
 										for row in oredrocFeesResult
 											uniqueKey = "oredroc:" + row['asin'] + ":" + row['sku']
 											if !_.contains(Object.keys(reorderItems), uniqueKey)
-												reorderItems.push(uniqueKey: {})
+												reorderItems[uniqueKey] = {}
 											rowData = new Array()
 											for key in Object.keys(row)
 												if key == 'snapshot-date'
@@ -284,7 +283,7 @@ else
 										for row in crenstoneInventoryResult
 											uniqueKey = "crenstone:" + row['asin'] + ":" + row['sku']
 											if !_.contains(Object.keys(reorderItems), uniqueKey)
-												reorderItems.push(uniqueKey: {})
+												reorderItems[uniqueKey] = {}
 											rowData = new Array()
 											for key in Object.keys(row)
 												if key == 'snapshot-date'
@@ -303,7 +302,7 @@ else
 										for row in crenstoneFeesResult
 											uniqueKey = "crenstone:" + row['asin'] + ":" + row['sku']
 											if !_.contains(Object.keys(reorderItems), uniqueKey)
-												reorderItems.push(uniqueKey: {})
+												reorderItems[uniqueKey] = {}
 											rowData = new Array()
 											for key in Object.keys(row)
 												if key == 'snapshot-date'

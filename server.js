@@ -204,9 +204,7 @@
                     row = oredrocInventoryResult[i];
                     uniqueKey = "oredroc:" + row['asin'] + ":" + row['sku'];
                     if (!_.contains(Object.keys(reorderItems), uniqueKey)) {
-                      reorderItems.push({
-                        uniqueKey: {}
-                      });
+                      reorderItems[uniqueKey] = {};
                     }
                     rowData = new Array();
                     ref = Object.keys(row);
@@ -238,9 +236,7 @@
                     row = oredrocFeesResult[k];
                     uniqueKey = "oredroc:" + row['asin'] + ":" + row['sku'];
                     if (!_.contains(Object.keys(reorderItems), uniqueKey)) {
-                      reorderItems.push({
-                        uniqueKey: {}
-                      });
+                      reorderItems[uniqueKey] = {};
                     }
                     rowData = new Array();
                     ref1 = Object.keys(row);
@@ -272,9 +268,7 @@
                     row = crenstoneInventoryResult[m];
                     uniqueKey = "crenstone:" + row['asin'] + ":" + row['sku'];
                     if (!_.contains(Object.keys(reorderItems), uniqueKey)) {
-                      reorderItems.push({
-                        uniqueKey: {}
-                      });
+                      reorderItems[uniqueKey] = {};
                     }
                     rowData = new Array();
                     ref2 = Object.keys(row);
@@ -306,9 +300,7 @@
                     row = crenstoneFeesResult[o];
                     uniqueKey = "crenstone:" + row['asin'] + ":" + row['sku'];
                     if (!_.contains(Object.keys(reorderItems), uniqueKey)) {
-                      reorderItems.push({
-                        uniqueKey: {}
-                      });
+                      reorderItems[uniqueKey] = {};
                     }
                     rowData = new Array();
                     ref3 = Object.keys(row);

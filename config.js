@@ -5,7 +5,7 @@
     MWS_AUTH_TOKEN: process.env.MWS_AUTH_TOKEN || void 0,
     SELLER_ID: process.env.SELLER_ID || void 0,
     AWS_ACCESS_KEY: process.env.AWS_ACCESS_KEY || void 0,
-    SELLER_ACCOUNT: process.env.SELLER_ACCOUNT || 'crenstone',
+    SELLER_ACCOUNT: process.env.SELLER_ACCOUNT || void 0,
     DATABASE_URL: process.env.DATABASE_URL || 'postgres://postgres:admin@localhost:5432/shipcor',
     IS_WORKER: process.env.IS_WORKER || false,
     SALTROUNDS: process.env.SALTROUNDS || 10,
