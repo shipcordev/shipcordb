@@ -146,7 +146,7 @@
               if (result.value.length > 0) {
                 firstResult = result.value[0];
                 firstResultValue = firstResult.value;
-                client.query('INSERT INTO \"report-snapshot-dates\"(seller, type, \"snapshot-date\") VALUES (\'oredroc\', \'' + firstResultValue.tableName + '\',\'' + firstResultValue.date + '\')').then(function(err, result) {
+                client.query('INSERT INTO \"report-snapshot-dates\"(seller, type, \"snapshot-date\") VALUES (\'' + config.SELLER_ACCOUNT + '\', \'' + firstResultValue.tableName + '\',\'' + firstResultValue.date + '\')').then(function(err, result) {
                   numReportsCompleted++;
                   if (numReportsCompleted === results.length) {
                     return deferred.resolve({
