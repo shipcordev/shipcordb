@@ -136,12 +136,12 @@
       }
     });
     app.get('/reports/download', function(req, res) {
-      var crenstoneFeesDateQuery, crenstoneInventoryDateQuery, date, formattedDate, oredrocFeesDateQuery, oredrocInventoryDateQuery;
+      var crenstoneFeesDateQuery, crenstoneInventoryDateQuery, date, oredrocFeesDateQuery, oredrocInventoryDateQuery, originalFormattedDate;
       if (!req.user) {
         return res.redirect('/');
       } else {
         date = new Date();
-        formattedDate = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
+        originalFormattedDate = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
         oredrocInventoryDateQuery = 'SELECT * FROM \"report-snapshot-dates\" WHERE seller=\'oredroc\' AND type=\'inventory-health\' ORDER BY \"snapshot-date\" DESC';
         crenstoneInventoryDateQuery = 'SELECT * FROM \"report-snapshot-dates\" WHERE seller=\'crenstone\' AND type=\'inventory-health\' ORDER BY \"snapshot-date\" DESC';
         oredrocFeesDateQuery = 'SELECT * FROM \"report-snapshot-dates\" WHERE seller=\'oredroc\' AND type=\'fba-fees\' ORDER BY \"snapshot-date\" DESC';
@@ -186,7 +186,7 @@
                 type: db.sequelize.QueryTypes.SELECT
               })
             ]).spread(function(oredrocInventoryResult, oredrocFeesResult, crenstoneInventoryResult, crenstoneFeesResult) {
-              var buffer, columnNames, data, i, j, k, key, l, len, len1, len2, len3, len4, len5, len6, len7, m, n, o, p, ref, ref1, ref2, ref3, reorderItems, reorderReport, row, rowData, uniqueKey, worksheets;
+              var buffer, columnNames, data, fileName, formattedDate, i, j, k, key, l, len, len1, len2, len3, len4, len5, len6, len7, m, n, o, p, ref, ref1, ref2, ref3, reorderItems, reorderReport, row, rowData, uniqueKey, worksheets;
               if (oredrocInventoryResult.length === 0 && oredrocFeesResult.length === 0 && crenstoneInventoryResult.length === 0 && crenstoneFeesResult.length === 0) {
                 return res.redirect('/');
               } else {
@@ -323,8 +323,9 @@
                   });
                 }
                 buffer = xlsx.build(worksheets);
+                fileName = originalFormattedDate + "-reorder.xlsx";
                 res.type('xlsx');
-                res.setHeader('Content-disposition', 'attachment; filename=output.xlsx');
+                res.setHeader('Content-disposition', 'attachment; filename=' + fileName);
                 return res.send(buffer);
               }
             });

@@ -191,7 +191,7 @@ else
 			res.redirect('/')
 		else
 			date = new Date()
-			formattedDate = date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate()
+			originalFormattedDate = date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate()
 			
 			#get all report dates for both seller accounts, then grab the latest time snapshot for each to grab the reports
 			oredrocInventoryDateQuery = 'SELECT * FROM \"report-snapshot-dates\" WHERE seller=\'oredroc\' AND type=\'inventory-health\' ORDER BY \"snapshot-date\" DESC'
@@ -317,8 +317,9 @@ else
 
 									buffer = xlsx.build(worksheets)
 
+									fileName = originalFormattedDate + "-reorder.xlsx"
 									res.type('xlsx')
-									res.setHeader('Content-disposition', 'attachment; filename=output.xlsx')
+									res.setHeader('Content-disposition', 'attachment; filename=' + fileName)
 									res.send(buffer)
 	)
 
