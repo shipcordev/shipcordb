@@ -5,4 +5,4 @@ cron:
    schedule: "0 1 * * *"
  - name: "getreports"
    url: "/reports/getlatest"
-   schedule: "0 8 * * *"
+   schedule: "30 9 * * *"
