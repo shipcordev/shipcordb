@@ -21,16 +21,28 @@
   inventoryHealthColumns = ["seller", "\"snapshot-date\"", "sku", "fnsku", "asin", "\"product-name\"", "condition", "\"sales-rank\"", "\"product-group\"", "\"total-quantity\"", "\"sellable-quantity\"", "\"unsellable-quantity\"", "\"inv-age-0-to-90-days\"", "\"inv-age-91-to-180-days\"", "\"inv-age-181-to-270-days\"", "\"inv-age-271-to-365-days\"", "\"inv-age-365-plus-days\"", "\"units-shipped-last-24-hrs\"", "\"units-shipped-last-7-days\"", "\"units-shipped-last-30-days\"", "\"units-shipped-last-90-days\"", "\"units-shipped-last-180-days\"", "\"units-shipped-last-365-days\"", "\"weeks-of-cover-t7\"", "\"weeks-of-cover-t30\"", "\"weeks-of-cover-t90\"", "\"weeks-of-cover-t180\"", "\"weeks-of-cover-t365\"", "\"num-afn-new-sellers\"", "\"num-afn-used-sellers\"", "currency", "\"your-price\"", "\"sales-price\"", "\"lowest-afn-new-price\"", "\"lowest-afn-used-price\"", "\"lowest-mfn-new-price\"", "\"lowest-mfn-used-price\"", "\"qty-to-be-charged-ltsf-12-mo\"", "\"qty-in-long-term-storage-program\"", "\"qty-with-removals-in-progress\"", "\"projected-ltsf-12-mo\"", "\"per-unit-volume\"", "\"is-hazmat\"", "\"in-bound-quantity\"", "\"asin-limit\"", "\"inbound-recommend-quantity\"", "\"qty-to-be-charged-ltsf-6-mo\"", "\"projected-ltsf-6-mo\""];
 
   getReportList = function(reportTypes, delay) {
-    return mws.Reports.GetReportList({
-      ReportTypeList: reportTypes
-    }).then(function(reportListData, metadata) {
-      var i, len, ref, reportIdAndTimestampsByType, reportRequest;
+    return Q.all([
+      mws.Reports.GetReportList({
+        ReportTypeList: reportTypes
+      }), client.query('SELECT * FROM \"report-snapshot-dates\" WHERE seller=\'' + config.SELLER_ACCOUNT + '\' ORDER BY \"snapshot-date\" DESC')
+    ]).spread(function(reportListData, snapshotDates) {
+      var formattedSnapshotDate, i, j, len, len1, mostRecentSnapshotByType, ref, ref1, reportIdAndTimestampsByType, reportRequest, snapshot, snapshotDate;
+      mostRecentSnapshotByType = [];
+      ref = snapshotDates.rows;
+      for (i = 0, len = ref.length; i < len; i++) {
+        snapshot = ref[i];
+        if (mostRecentSnapshotByType[snapshot['type']] === void 0) {
+          snapshotDate = new Date(snapshot['snapshot-date']);
+          formattedSnapshotDate = snapshotDate.getFullYear() + '-' + (snapshotDate.getMonth() + 1) + '-' + snapshotDate.getDate();
+          mostRecentSnapshotByType[snapshot['type']] = formattedSnapshotDate;
+        }
+      }
       console.log("Processing reports...");
       reportIdAndTimestampsByType = [];
       if (reportListData.result.ReportInfo !== void 0) {
-        ref = reportListData.result.ReportInfo;
-        for (i = 0, len = ref.length; i < len; i++) {
-          reportRequest = ref[i];
+        ref1 = reportListData.result.ReportInfo;
+        for (j = 0, len1 = ref1.length; j < len1; j++) {
+          reportRequest = ref1[j];
           if (reportRequest.ReportType === "_GET_FBA_ESTIMATED_FBA_FEES_TXT_DATA_" && reportIdAndTimestampsByType["_GET_FBA_ESTIMATED_FBA_FEES_TXT_DATA_"] === void 0) {
             reportIdAndTimestampsByType["_GET_FBA_ESTIMATED_FBA_FEES_TXT_DATA_"] = {
               id: reportRequest.ReportId,
@@ -62,62 +74,70 @@
             date = new Date(reportIdAndTimestampsByType[reportType].timestamp);
             formattedDate = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
             queryParams = [];
-            csv.fromString(report.result, {
-              headers: true,
-              delimiter: '\t',
-              quote: null
-            }).on("data", function(data) {
-              var count, insertPlaceholders, insertValues, j, key, len1, queryString, ref1, tableToInsert;
-              insertPlaceholders = new Array();
-              count = 0;
-              insertValues = new Array();
-              tableToInsert = "inventory-health";
-              insertValues.push(config.SELLER_ACCOUNT);
-              insertPlaceholders.push("$" + ++count);
-              if (!_.contains(Object.keys(data), "snapshot-date")) {
-                tableToInsert = "fba-fees";
-                insertValues.push(formattedDate);
+            if (reportType === '_GET_FBA_FULFILLMENT_INVENTORY_HEALTH_DATA_' && mostRecentSnapshotByType['inventory-health'] === formattedDate) {
+              return Q('');
+            } else if (reportType === '_GET_FBA_ESTIMATED_FBA_FEES_TXT_DATA_' && mostRecentSnapshotByType['fba-fees'] === formattedDate) {
+              return Q('');
+            } else {
+              csv.fromString(report.result, {
+                headers: true,
+                delimiter: '\t',
+                quote: null
+              }).on("data", function(data) {
+                var count, insertPlaceholders, insertValues, k, key, len2, queryString, ref2, tableToInsert;
+                insertPlaceholders = new Array();
+                count = 0;
+                insertValues = new Array();
+                tableToInsert = "inventory-health";
+                insertValues.push(config.SELLER_ACCOUNT);
                 insertPlaceholders.push("$" + ++count);
-              }
-              ref1 = Object.keys(data);
-              for (j = 0, len1 = ref1.length; j < len1; j++) {
-                key = ref1[j];
-                if (key === "snapshot-date") {
+                if (!_.contains(Object.keys(data), "snapshot-date")) {
+                  tableToInsert = "fba-fees";
                   insertValues.push(formattedDate);
-                } else if (key === "is-hazmat") {
-                  if (data[key] === 'N') {
-                    insertValues.push(false);
-                  } else {
-                    insertValues.push(true);
-                  }
-                } else if (data[key] === null || data[key] === void 0 || data[key].trim() === '' || data[key].trim() === '--') {
-                  insertValues.push(null);
-                } else {
-                  insertValues.push(data[key]);
+                  insertPlaceholders.push("$" + ++count);
                 }
-                insertPlaceholders.push("$" + ++count);
-              }
-              queryString = '';
-              if (tableToInsert === "fba-fees") {
-                queryString = 'INSERT INTO "' + tableToInsert + '"(' + fbaFeesColumns.join(',') + ') VALUES (' + insertPlaceholders.join(',') + ') RETURNING id';
-              } else {
-                queryString = 'INSERT INTO "' + tableToInsert + '"(' + inventoryHealthColumns.join(',') + ') VALUES (' + insertPlaceholders.join(',') + ') RETURNING id';
-              }
-              return queryParams.push({
-                tableName: tableToInsert,
-                queryString: queryString,
-                insertValues: insertValues,
-                date: formattedDate
+                ref2 = Object.keys(data);
+                for (k = 0, len2 = ref2.length; k < len2; k++) {
+                  key = ref2[k];
+                  if (key === "snapshot-date") {
+                    insertValues.push(formattedDate);
+                  } else if (key === "is-hazmat") {
+                    if (data[key] === 'N') {
+                      insertValues.push(false);
+                    } else {
+                      insertValues.push(true);
+                    }
+                  } else if (data[key] === null || data[key] === void 0 || data[key].trim() === '' || data[key].trim() === '--') {
+                    insertValues.push(null);
+                  } else {
+                    insertValues.push(data[key]);
+                  }
+                  insertPlaceholders.push("$" + ++count);
+                }
+                queryString = '';
+                if (tableToInsert === "fba-fees") {
+                  queryString = 'INSERT INTO "' + tableToInsert + '"(' + fbaFeesColumns.join(',') + ') VALUES (' + insertPlaceholders.join(',') + ') RETURNING id';
+                } else {
+                  queryString = 'INSERT INTO "' + tableToInsert + '"(' + inventoryHealthColumns.join(',') + ') VALUES (' + insertPlaceholders.join(',') + ') RETURNING id';
+                }
+                return queryParams.push({
+                  tableName: tableToInsert,
+                  queryString: queryString,
+                  insertValues: insertValues,
+                  date: formattedDate
+                });
+              }).on("error", function(data) {
+                console.log(data);
+                return deferred.reject(new Error(data));
+              }).on("end", function() {
+                return deferred.resolve(queryParams);
               });
-            }).on("error", function(data) {
-              console.log(data);
-              return deferred.reject(new Error(data));
-            }).on("end", function() {
-              return deferred.resolve(queryParams);
-            });
-            return deferred.promise;
+              return deferred.promise;
+            }
           }).then(function(queries) {
-            return Q.allSettled(_.map(queries, function(query) {
+            return Q.allSettled(_.map(_.filter(queries, function(query) {
+              return query !== '';
+            }), function(query) {
               var deferred;
               deferred = Q.defer();
               client.query(query.queryString, query.insertValues, function(err, result) {
@@ -136,11 +156,11 @@
             }));
           });
         })).then(function(results) {
-          var deferred, firstResult, firstResultValue, j, len1, numReportsCompleted, result;
+          var deferred, firstResult, firstResultValue, k, len2, numReportsCompleted, result;
           deferred = Q.defer();
           numReportsCompleted = 0;
-          for (j = 0, len1 = results.length; j < len1; j++) {
-            result = results[j];
+          for (k = 0, len2 = results.length; k < len2; k++) {
+            result = results[k];
             if (result.state === "fulfilled") {
               console.log(result.value);
               if (result.value.length > 0) {
@@ -154,6 +174,13 @@
                     });
                   }
                 });
+              } else {
+                numReportsCompleted++;
+                if (numReportsCompleted === results.length) {
+                  deferred.resolve({
+                    numReports: numReportsCompleted
+                  });
+                }
               }
             }
           }
