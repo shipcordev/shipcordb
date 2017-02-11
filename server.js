@@ -142,10 +142,10 @@
       } else {
         date = new Date();
         formattedDate = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
-        oredrocInventoryDateQuery = 'SELECT * FROM \"report-snapshot-dates\" WHERE seller=\'oredroc\' AND type=\'inventory-health\'';
-        crenstoneInventoryDateQuery = 'SELECT * FROM \"report-snapshot-dates\" WHERE seller=\'crenstone\' AND type=\'inventory-health\'';
-        oredrocFeesDateQuery = 'SELECT * FROM \"report-snapshot-dates\" WHERE seller=\'oredroc\' AND type=\'fba-fees\'';
-        crenstoneFeesDateQuery = 'SELECT * FROM \"report-snapshot-dates\" WHERE seller=\'crenstone\' AND type=\'fba-fees\'';
+        oredrocInventoryDateQuery = 'SELECT * FROM \"report-snapshot-dates\" WHERE seller=\'oredroc\' AND type=\'inventory-health\' ORDER BY \"snapshot-date\" DESC';
+        crenstoneInventoryDateQuery = 'SELECT * FROM \"report-snapshot-dates\" WHERE seller=\'crenstone\' AND type=\'inventory-health\' ORDER BY \"snapshot-date\" DESC';
+        oredrocFeesDateQuery = 'SELECT * FROM \"report-snapshot-dates\" WHERE seller=\'oredroc\' AND type=\'fba-fees\' ORDER BY \"snapshot-date\" DESC';
+        crenstoneFeesDateQuery = 'SELECT * FROM \"report-snapshot-dates\" WHERE seller=\'crenstone\' AND type=\'fba-fees\' ORDER BY \"snapshot-date\" DESC';
         return Q.all([db.sequelize.query(oredrocInventoryDateQuery), db.sequelize.query(crenstoneInventoryDateQuery), db.sequelize.query(oredrocFeesDateQuery), db.sequelize.query(crenstoneFeesDateQuery)]).spread(function(oredrocInventoryDateResult, crenstoneInventoryDateResult, oredrocFeesDateResult, crenstoneFeesDateResult) {
           var crenstoneFeesByDateQuery, crenstoneFeesDate, crenstoneFeesDateFormatted, crenstoneInventoryByDateQuery, crenstoneInventoryDate, crenstoneInventoryDateFormatted, oredrocFeesByDateQuery, oredrocFeesDate, oredrocFeesDateFormatted, oredrocInventoryByDateQuery, oredrocInventoryDate, oredrocInventoryDateFormatted;
           if (oredrocInventoryDateResult[1].rowCount === 0 && crenstoneInventoryDateResult[1].rowCount === 0 && oredrocFeesDateResult[1].rowCount === 0 && crenstoneFeesDateResult[1].rowCount === 0) {
