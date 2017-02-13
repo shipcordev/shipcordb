@@ -252,7 +252,7 @@ buildReorderData = (reorderItems) ->
 			 ,reorderItems[key]['your-price'] || ''
 			 ,reorderItems[key]['sales-price'] || ''
 			 ,reorderItems[key]['estimated-fee-total'] || ''
-			 ,reorderItems[key]['estimated-future-fee (Current Selling on Amazon + Future Fulfillment fees)'] || ''
+			 ,reorderItems[key]['estimated-future-fee'] || ''
 			 ,reorderItems[key]['estimated-shipping-cost'] || ''
 			 ,reorderItems[key]['total-inventory-cost'] || ''
 			 ,reorderItems[key]['overhead-rate'] || ''
