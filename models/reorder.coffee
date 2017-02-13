@@ -41,7 +41,7 @@ query = client.query(
 	"vendor-name" VARCHAR(255),
 	"vendor-price" DECIMAL,
 	"quantity-needed-per-asin" INTEGER,
-	"type-pf-order" VARCHAR(255),
+	"type-of-order" VARCHAR(255),
 	"can-order" BOOLEAN,
 	"sku-crenstone" VARCHAR(255),
 	"fnsku-crenstone" VARCHAR(255),

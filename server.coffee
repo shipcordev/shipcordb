@@ -158,6 +158,135 @@ outputReorderColumns = ["snapshot-date"
  ,"oredroc-units-shipped-last-365-days"
 ]
 
+buildReorderData = (reorderItems) ->
+	reorderData = []
+	reorderData.push(outputReorderColumns)
+	for key in Object.keys(reorderItems)
+		snapshotDate = new Date(reorderItems[key]['snapshot-date'])
+		snapshotDateFormatted = snapshotDate.getFullYear() + '-' + (snapshotDate.getMonth()+1) + '-' + snapshotDate.getDate()
+		asin = reorderItems[key]['asin'] 
+		seller = reorderItems[key]['seller']
+		sameAsins = _.filter(reorderItems, (k) -> k.indexOf(asin) >= 0 and k != key)
+		quantityNeededForRestock3x = 3 * (reorderItems[key]['sellable-quantity'] + reorderItems[key]['in-bound-quantity'])
+		quantityNeededForRestock6x = 6 * (reorderItems[key]['sellable-quantity'] + reorderItems[key]['in-bound-quantity'])
+		reorderItems[key]['quantity-needed-for-restock-3x'] = quantityNeededForRestock3x
+		reorderItems[key]['quantity-needed-for-restock-6x'] = quantityNeededForRestock6x		
+		reorderItems[key]['below-current-price'] = reorderItems[key]['lowest-afn-new-price'] - reorderItems[key]['your-price']
+		reorderItems[key]['instock-' + seller] = reorderItems[key]['sellable-quantity']
+		if seller == 'crenstone'
+			otherSeller = 'oredroc'
+		else
+			otherSeller = 'crenstone'
+		reorderItems[key]['instock-' + otherSeller] = 0
+
+		###for similarKey in sameAsins
+			if similarKey.indexOf(seller) >= 0
+				reorderItems[key]['instock-' + seller] += reorderItems[similarKey]['sellable-quantity']
+			else
+				reorderItems[key]['instock-' + otherSeller] += reorderItems[similarKey]['sellable-quantity']
+		###
+		reorderItems[key][seller + '-units-shipped-last-24-hrs'] = reorderItems[key]['units-shipped-last-24-hrs']
+		reorderItems[key][seller + '-units-shipped-last-7-days'] = reorderItems[key]['units-shipped-last-7-days']
+		reorderItems[key][seller + '-units-shipped-last-30-days'] = reorderItems[key]['units-shipped-last-30-days']
+		reorderItems[key][seller + '-units-shipped-last-90-days'] = reorderItems[key]['units-shipped-last-90-days']
+		reorderItems[key][seller + '-units-shipped-last-180-days'] = reorderItems[key]['units-shipped-last-180-days']
+		reorderItems[key][seller + '-units-shipped-last-365-days'] = reorderItems[key]['units-shipped-last-365-days']
+		reorderItems[key]['In Stock or OOS - ' + seller] = reorderItems[key]['total-quantity']
+		reorderItems[key]['InBound ' + seller] = reorderItems[key]['in-bound-quantity']
+		reorderItems[key]['Last 30 days of sales when in stock - ' + seller] = reorderItems[key]['units-shipped-last-30-days']
+		reorderItems[key]['Total Stock - Both Accounts'] = reorderItems[key]['total-quantity']
+		reorderItems[key]['Total Sales both accounts - 30 days'] = reorderItems[key]['units-shipped-last-30-days']
+		reorderItems[key]['Selling in accounts'] = seller
+		reorderItems[key]['Has stock in accounts'] = if reorderItems[key]['sellable-quantity'] != undefined and reorderItems[key]['sellable-quantity'] > 0 then seller else ''
+		reorderItems[key][seller + ' SKU'] = reorderItems[key]['sku']
+		reorderItems[key][seller + ' FNSKU'] = reorderItems[key]['fnsku']		
+
+		#finish making reorder row, add to data, then return all the rows and create the output file. Easy.
+		reorderRow = [
+			snapshotDateFormatted || ''
+			 ,reorderItems[key]['asin'] || ''
+			 ,reorderItems[key]['product-name'] || ''
+			 ,reorderItems[key]['sales-rank'] || ''
+			 ,reorderItems[key]['product-group'] || ''
+			 ,reorderItems[key]['your-price'] || ''
+			 ,reorderItems[key]['lowest-afn-new-price'] || ''
+			 ,reorderItems[key]['total-units-shipped-last-24-hrs'] || ''
+			 ,reorderItems[key]['total-units-shipped-last-7-days'] || ''
+			 ,reorderItems[key]['total-units-shipped-last-30-days'] || ''
+			 ,reorderItems[key]['total-units-shipped-last-90-days'] || ''
+			 ,reorderItems[key]['total-units-shipped-last-180-days'] || ''
+			 ,reorderItems[key]['total-units-shipped-last-365-days'] || ''
+			 ,reorderItems[key]['num-afn-new-sellers'] || ''
+			 ,reorderItems[key]['Remove from Restock report'] || ''
+			 ,reorderItems[key]['In Stock or OOS - crenstone'] || ''
+			 ,reorderItems[key]['InBound crenstone'] || ''
+			 ,reorderItems[key]['Days OOS - crenstone'] || ''
+			 ,reorderItems[key]['Last 30 days of sales when in stock - crenstone'] || ''
+			 ,reorderItems[key]['In Stock or OOS - oredroc'] || ''
+			 ,reorderItems[key]['InBound oredroc'] || ''
+			 ,reorderItems[key]['Days OOS - oredroc'] || ''
+			 ,reorderItems[key]['Last 30 days of sales when in stock - oredroc'] || ''
+			 ,reorderItems[key]['Total Stock - Both Accounts'] || ''
+			 ,reorderItems[key]['Total Sales both accounts - 30 days'] || ''
+			 ,reorderItems[key]['Seasonal Tags'] || ''
+			 ,reorderItems[key]['OEM MFG Part Number'] || ''
+			 ,reorderItems[key]['OEM MFG'] || ''
+			 ,reorderItems[key]['Vendor Part number'] || ''
+			 ,reorderItems[key]['Item Description'] || ''
+			 ,reorderItems[key]['Vendor Name'] || ''
+			 ,reorderItems[key]['Vendor Price'] || ''
+			 ,reorderItems[key]['Quantity needed per ASIN'] || ''
+			 ,reorderItems[key]['Total price of ASIN'] || ''
+			 ,reorderItems[key]['Quantity needed for restock order 3x on 30 day sales'] || ''
+			 ,reorderItems[key]['Quantity needed for restock order 6x on 30 day sales'] || ''
+			 ,reorderItems[key]['Closeout / Retail Tag'] || ''
+			 ,reorderItems[key]['Can Order Again?'] || ''
+			 ,reorderItems[key]['Selling in accounts'] || ''
+			 ,reorderItems[key]['Has stock in accounts'] || ''
+			 ,reorderItems[key]['crenstone SKU'] || ''
+			 ,reorderItems[key]['crenstone FNSKU'] || ''
+			 ,reorderItems[key]['your-price'] || ''
+			 ,reorderItems[key]['lowest-afn-new-price'] || ''
+			 ,reorderItems[key]['lowest-afn-new-price'] - reorderItems[key]['your-price'] || ''
+			 ,reorderItems[key]['brand'] || ''
+			 ,reorderItems[key]['your-price'] || ''
+			 ,reorderItems[key]['sales-price'] || ''
+			 ,reorderItems[key]['estimated-fee-total'] || ''
+			 ,reorderItems[key]['estimated-future-fee (Current Selling on Amazon + Future Fulfillment fees)'] || ''
+			 ,reorderItems[key]['estimated-shipping-cost'] || ''
+			 ,reorderItems[key]['total-inventory-cost'] || ''
+			 ,reorderItems[key]['overhead-rate'] || ''
+			 ,reorderItems[key]['profit'] || ''
+			 ,reorderItems[key]['future-profit'] || ''
+			 ,reorderItems[key]['crenstone-units-shipped-last-24-hrs'] || ''
+			 ,reorderItems[key]['crenstone-units-shipped-last-7-days'] || ''
+			 ,reorderItems[key]['crenstone-units-shipped-last-30-days'] || ''
+			 ,reorderItems[key]['crenstone-units-shipped-last-90-days'] || ''
+			 ,reorderItems[key]['crenstone-units-shipped-last-180-days'] || ''
+			 ,reorderItems[key]['crenstone-units-shipped-last-365-days'] || ''
+			 ,reorderItems[key]['your-price'] || ''
+			 ,reorderItems[key]['lowest-afn-new-price'] || ''
+			 ,reorderItems[key]['Below Current Price?'] || ''
+			 ,reorderItems[key]['brand'] || ''
+			 ,reorderItems[key]['your-price'] || ''
+			 ,reorderItems[key]['sales-price'] || ''
+			 ,reorderItems[key]['estimated-fee-total'] || ''
+			 ,reorderItems[key]['estimated-future-fee (Current Selling on Amazon + Future Fulfillment fees)'] || ''
+			 ,reorderItems[key]['estimated-shipping-cost'] || ''
+			 ,reorderItems[key]['total-inventory-cost'] || ''
+			 ,reorderItems[key]['overhead-rate'] || ''
+			 ,reorderItems[key]['profit'] || ''
+			 ,reorderItems[key]['future-profit'] || ''
+			 ,reorderItems[key]['oredroc-units-shipped-last-24-hrs'] || ''
+			 ,reorderItems[key]['oredroc-units-shipped-last-7-days'] || ''
+			 ,reorderItems[key]['oredroc-units-shipped-last-30-days'] || ''
+			 ,reorderItems[key]['oredroc-units-shipped-last-90-days'] || ''
+			 ,reorderItems[key]['oredroc-units-shipped-last-180-days'] || ''
+			 ,reorderItems[key]['oredroc-units-shipped-last-365-days'] || ''
+		]
+		reorderData.push(reorderRow)
+	reorderData
+
 app.get('/ping', (req, res) ->
 	res.sendStatus(200)
 )
@@ -235,8 +364,6 @@ else
 									res.redirect('/')
 								else
 									worksheets = []
-									reorderReport = []
-									reorderReport.push(outputReorderColumns)
 									reorderItems = []
 									if oredrocInventoryResult.length > 0
 										columnNames = _.filter(Object.keys(oredrocInventoryResult[0]), (key) -> key != 'id' and key != 'seller')
@@ -314,6 +441,13 @@ else
 												reorderItems[uniqueKey][key] = row[key]
 											data.push(rowData)
 										worksheets.push({name: "Crenstone FBA Fees", data: data})
+
+									###for key in Object.keys(reorderItems)
+										if reorderItems[key]['condition'] != undefined
+											console.log reorderItems[key]###
+
+									reorderData = buildReorderData(reorderItems)
+									worksheets.unshift({name: "Reorder File", data: reorderData})
 
 									buffer = xlsx.build(worksheets)
 
