@@ -105,57 +105,75 @@
 
   db.createTablesIfNotExist();
 
-  outputReorderColumns = ["snapshot-date", "ASIN", "product-name", "Sales Rank", "product-group", "Our Current Price", "Lowest Prime Price", "total-units-shipped-last-24-hrs", "total-units-shipped-last-7-days", "total-units-shipped-last-30-days", "total-units-shipped-last-90-days", "total-units-shipped-last-180-days", "total-units-shipped-last-365-days", "num-afn-new-sellers", "Remove from Restock report", "In Stock or OOS - Crenstone", "InBound Crenstone", "Days OOS - Crenstone", "Last 30 days of sales when in stock - Crenstone", "In Stock or OOS - Oredroc", "InBound Oredroc", "Days OOS - Oredroc", "Last 30 days of sales when in stock - Oredroc", "Total Stock - Both Accounts", "Total Sales both accounts - 30 days", "Seasonal Tags", "OEM MFG Part Number", "OEM MFG", "Vendor Part number", "Item Description", "Vendor Name", "Vendor Price", "Quantity needed per ASIN", "Total price of ASIN", "Quantity needed for restock order 3x on 30 day sales", "Quantity needed for restock order 6x on 30 day sales", "Closeout / Retail Tag", "Can Order Again?", "Selling in accounts", "Has stock in accounts", "Crenstone SKU", "Crenstone FNSKU", "your-price", "lowest-afn-new-price", "Below Current Price?", "brand", "your-price", "sales-price", "estimated-fee-total", "estimated-future-fee (Current Selling on Amazon + Future Fulfillment fees)", "estimated-shipping-cost", "total-inventory-cost", "overhead-rate", "profit", "future-profit", "crenstone-units-shipped-last-24-hrs", "crenstone-units-shipped-last-7-days", "crenstone-units-shipped-last-30-days", "crenstone-units-shipped-last-90-days", "crenstone-units-shipped-last-180-days", "crenstone-units-shipped-last-365-days", "your-price", "lowest-afn-new-price", "Below Current Price?", "brand", "your-price", "sales-price", "estimated-fee-total", "estimated-future-fee (Current Selling on Amazon + Future Fulfillment fees)", "estimated-shipping-cost", "total-inventory-cost", "overhead-rate", "profit", "future-profit", "oredroc-units-shipped-last-24-hrs", "oredroc-units-shipped-last-7-days", "oredroc-units-shipped-last-30-days", "oredroc-units-shipped-last-90-days", "oredroc-units-shipped-last-180-days", "oredroc-units-shipped-last-365-days"];
+  outputReorderColumns = ["snapshot-date", "ASIN", "product-name", "Sales Rank", "product-group", "total-units-shipped-last-24-hrs", "total-units-shipped-last-7-days", "total-units-shipped-last-30-days", "total-units-shipped-last-90-days", "total-units-shipped-last-180-days", "total-units-shipped-last-365-days", "num-afn-new-sellers", "Remove from Restock report", "In Stock or OOS - Crenstone", "Inbound Crenstone", "Days OOS - Crenstone", "Last 30 days of sales when in stock - Crenstone", "In Stock or OOS - Oredroc", "Inbound Oredroc", "Days OOS - Oredroc", "Last 30 days of sales when in stock - Oredroc", "Total Stock - Both Accounts", "Total Sales both accounts - 30 days", "Seasonal Tags", "OEM MFG Part Number", "OEM MFG", "Vendor Part number", "Item Description", "Vendor Name", "Vendor Price", "Quantity needed per ASIN", "Total price of ASIN", "Quantity needed for restock order 3x on 30 day sales", "Quantity needed for restock order 6x on 30 day sales", "Closeout / Retail Tag", "Can Order Again?", "Selling in accounts", "Has stock in accounts", "Crenstone SKU", "Crenstone FNSKU", "Our Current Price", "Lowest Prime Price", "Below Current Price?", "brand", "your-price", "sales-price", "estimated-fee-total", "estimated-future-fee (Current Selling on Amazon + Future Fulfillment fees)", "estimated-shipping-cost", "total-inventory-cost", "overhead-rate", "profit", "future-profit", "crenstone-units-shipped-last-24-hrs", "crenstone-units-shipped-last-7-days", "crenstone-units-shipped-last-30-days", "crenstone-units-shipped-last-90-days", "crenstone-units-shipped-last-180-days", "crenstone-units-shipped-last-365-days", "Oredroc SKU", "Oredroc FNSKU", "Our Current Price", "Lowest Prime Price", "Below Current Price?", "brand", "your-price", "sales-price", "estimated-fee-total", "estimated-future-fee (Current Selling on Amazon + Future Fulfillment fees)", "estimated-shipping-cost", "total-inventory-cost", "overhead-rate", "profit", "future-profit", "oredroc-units-shipped-last-24-hrs", "oredroc-units-shipped-last-7-days", "oredroc-units-shipped-last-30-days", "oredroc-units-shipped-last-90-days", "oredroc-units-shipped-last-180-days", "oredroc-units-shipped-last-365-days"];
 
   buildReorderData = function(reorderItems) {
-    var asin, i, key, len, otherSeller, quantityNeededForRestock3x, quantityNeededForRestock6x, ref, reorderData, reorderRow, sameAsins, seller, snapshotDate, snapshotDateFormatted;
+    var asin, i, key, len, ref, reorderData, reorderRow, seller, snapshotDate, snapshotDateFormatted, totalUnitsShippedLast180Days, totalUnitsShippedLast24Hours, totalUnitsShippedLast30Days, totalUnitsShippedLast365Days, totalUnitsShippedLast7Days, totalUnitsShippedLast90Days;
+    console.log("building");
     reorderData = [];
     reorderData.push(outputReorderColumns);
     ref = Object.keys(reorderItems);
     for (i = 0, len = ref.length; i < len; i++) {
       key = ref[i];
-      snapshotDate = new Date(reorderItems[key]['snapshot-date']);
-      snapshotDateFormatted = snapshotDate.getFullYear() + '-' + (snapshotDate.getMonth() + 1) + '-' + snapshotDate.getDate();
-      asin = reorderItems[key]['asin'];
-      seller = reorderItems[key]['seller'];
-      sameAsins = _.filter(reorderItems, function(k) {
-        return k.indexOf(asin) >= 0 && k !== key;
-      });
-      quantityNeededForRestock3x = 3 * (reorderItems[key]['sellable-quantity'] + reorderItems[key]['in-bound-quantity']);
-      quantityNeededForRestock6x = 6 * (reorderItems[key]['sellable-quantity'] + reorderItems[key]['in-bound-quantity']);
-      reorderItems[key]['quantity-needed-for-restock-3x'] = quantityNeededForRestock3x;
-      reorderItems[key]['quantity-needed-for-restock-6x'] = quantityNeededForRestock6x;
-      reorderItems[key]['below-current-price'] = reorderItems[key]['lowest-afn-new-price'] - reorderItems[key]['your-price'];
-      reorderItems[key]['instock-' + seller] = reorderItems[key]['sellable-quantity'];
-      if (seller === 'crenstone') {
-        otherSeller = 'oredroc';
-      } else {
-        otherSeller = 'crenstone';
+      if (reorderItems[key]['crenstone'] === void 0) {
+        reorderItems[key]['crenstone'] = {};
       }
-      reorderItems[key]['instock-' + otherSeller] = 0;
+      if (reorderItems[key]['oredroc'] === void 0) {
+        reorderItems[key]['oredroc'] = {};
+      }
+      snapshotDate = null;
+      snapshotDateFormatted = null;
+      if (reorderItems[key]["crenstone"] !== void 0 && reorderItems[key]["crenstone"]["snapshot-date"] !== void 0) {
+        snapshotDate = new Date(reorderItems[key]["crenstone"]['snapshot-date']);
+        snapshotDateFormatted = snapshotDate.getFullYear() + '-' + (snapshotDate.getMonth() + 1) + '-' + snapshotDate.getDate();
+      } else {
+        snapshotDate = new Date(reorderItems[key]["oredroc"]['snapshot-date']);
+        snapshotDateFormatted = snapshotDate.getFullYear() + '-' + (snapshotDate.getMonth() + 1) + '-' + snapshotDate.getDate();
+      }
+      asin = reorderItems[key]['crenstone']['asin'] || reorderItems[key]['oredroc']['asin'];
+      seller = '';
+      if (reorderItems[key]['crenstone']['seller']) {
+        seller += 'Crenstone';
+      }
+      if (reorderItems[key]['oredroc']['seller']) {
+        seller += ' Oredroc';
+      }
+      totalUnitsShippedLast24Hours = (reorderItems[key]['crenstone']['units-shipped-last-24-hrs'] || 0) + (reorderItems[key]['oredroc']['units-shipped-last-24-hrs'] || 0);
+      totalUnitsShippedLast7Days = (reorderItems[key]['crenstone']['units-shipped-last-7-days'] || 0) + (reorderItems[key]['oredroc']['units-shipped-last-7-days'] || 0);
+      totalUnitsShippedLast30Days = (reorderItems[key]['crenstone']['units-shipped-last-7-days'] || 0) + (reorderItems[key]['oredroc']['units-shipped-last-7-days'] || 0);
+      totalUnitsShippedLast90Days = (reorderItems[key]['crenstone']['units-shipped-last-7-days'] || 0) + (reorderItems[key]['oredroc']['units-shipped-last-7-days'] || 0);
+      totalUnitsShippedLast180Days = (reorderItems[key]['crenstone']['units-shipped-last-7-days'] || 0) + (reorderItems[key]['oredroc']['units-shipped-last-7-days'] || 0);
+      totalUnitsShippedLast365Days = (reorderItems[key]['crenstone']['units-shipped-last-7-days'] || 0) + (reorderItems[key]['oredroc']['units-shipped-last-7-days'] || 0);
 
-      /*for similarKey in sameAsins
-      			if similarKey.indexOf(seller) >= 0
-      				reorderItems[key]['instock-' + seller] += reorderItems[similarKey]['sellable-quantity']
-      			else
-      				reorderItems[key]['instock-' + otherSeller] += reorderItems[similarKey]['sellable-quantity']
+      /*quantityNeededForRestock3x = 3 * (reorderItems[key]['sellable-quantity'] + reorderItems[key]['in-bound-quantity'])
+      		quantityNeededForRestock6x = 6 * (reorderItems[key]['sellable-quantity'] + reorderItems[key]['in-bound-quantity'])
+      		reorderItems[key]['quantity-needed-for-restock-3x'] = quantityNeededForRestock3x
+      		reorderItems[key]['quantity-needed-for-restock-6x'] = quantityNeededForRestock6x		
+      		reorderItems[key]['below-current-price'] = reorderItems[key]['lowest-afn-new-price'] - reorderItems[key]['your-price']
+      		reorderItems[key]['instock-' + seller] = reorderItems[key]['sellable-quantity']
+      		if seller == 'crenstone'
+      			otherSeller = 'oredroc'
+      		else
+      			otherSeller = 'crenstone'
+      		reorderItems[key]['instock-' + otherSeller] = 0
+      
+      		reorderItems[key][seller + '-units-shipped-last-24-hrs'] = reorderItems[key]['units-shipped-last-24-hrs']
+      		reorderItems[key][seller + '-units-shipped-last-7-days'] = reorderItems[key]['units-shipped-last-7-days']
+      		reorderItems[key][seller + '-units-shipped-last-30-days'] = reorderItems[key]['units-shipped-last-30-days']
+      		reorderItems[key][seller + '-units-shipped-last-90-days'] = reorderItems[key]['units-shipped-last-90-days']
+      		reorderItems[key][seller + '-units-shipped-last-180-days'] = reorderItems[key]['units-shipped-last-180-days']
+      		reorderItems[key][seller + '-units-shipped-last-365-days'] = reorderItems[key]['units-shipped-last-365-days']
+      		reorderItems[key]['In Stock or OOS - ' + seller] = reorderItems[key]['total-quantity']
+      		reorderItems[key]['InBound ' + seller] = reorderItems[key]['in-bound-quantity']
+      		reorderItems[key]['Last 30 days of sales when in stock - ' + seller] = reorderItems[key]['units-shipped-last-30-days']
+      		reorderItems[key]['Total Stock - Both Accounts'] = reorderItems[key]['total-quantity']
+      		reorderItems[key]['Total Sales both accounts - 30 days'] = reorderItems[key]['units-shipped-last-30-days']
+      		reorderItems[key]['Selling in accounts'] = seller
+      		reorderItems[key]['Has stock in accounts'] = if reorderItems[key]['sellable-quantity'] != undefined and reorderItems[key]['sellable-quantity'] > 0 then seller else ''
+      		reorderItems[key][seller + ' SKU'] = reorderItems[key]['sku']
+      		reorderItems[key][seller + ' FNSKU'] = reorderItems[key]['fnsku']
        */
-      reorderItems[key][seller + '-units-shipped-last-24-hrs'] = reorderItems[key]['units-shipped-last-24-hrs'];
-      reorderItems[key][seller + '-units-shipped-last-7-days'] = reorderItems[key]['units-shipped-last-7-days'];
-      reorderItems[key][seller + '-units-shipped-last-30-days'] = reorderItems[key]['units-shipped-last-30-days'];
-      reorderItems[key][seller + '-units-shipped-last-90-days'] = reorderItems[key]['units-shipped-last-90-days'];
-      reorderItems[key][seller + '-units-shipped-last-180-days'] = reorderItems[key]['units-shipped-last-180-days'];
-      reorderItems[key][seller + '-units-shipped-last-365-days'] = reorderItems[key]['units-shipped-last-365-days'];
-      reorderItems[key]['In Stock or OOS - ' + seller] = reorderItems[key]['total-quantity'];
-      reorderItems[key]['InBound ' + seller] = reorderItems[key]['in-bound-quantity'];
-      reorderItems[key]['Last 30 days of sales when in stock - ' + seller] = reorderItems[key]['units-shipped-last-30-days'];
-      reorderItems[key]['Total Stock - Both Accounts'] = reorderItems[key]['total-quantity'];
-      reorderItems[key]['Total Sales both accounts - 30 days'] = reorderItems[key]['units-shipped-last-30-days'];
-      reorderItems[key]['Selling in accounts'] = seller;
-      reorderItems[key]['Has stock in accounts'] = reorderItems[key]['sellable-quantity'] !== void 0 && reorderItems[key]['sellable-quantity'] > 0 ? seller : '';
-      reorderItems[key][seller + ' SKU'] = reorderItems[key]['sku'];
-      reorderItems[key][seller + ' FNSKU'] = reorderItems[key]['fnsku'];
-      reorderRow = [snapshotDateFormatted || '', reorderItems[key]['asin'] || '', reorderItems[key]['product-name'] || '', reorderItems[key]['sales-rank'] || '', reorderItems[key]['product-group'] || '', reorderItems[key]['your-price'] || '', reorderItems[key]['lowest-afn-new-price'] || '', reorderItems[key]['total-units-shipped-last-24-hrs'] || '', reorderItems[key]['total-units-shipped-last-7-days'] || '', reorderItems[key]['total-units-shipped-last-30-days'] || '', reorderItems[key]['total-units-shipped-last-90-days'] || '', reorderItems[key]['total-units-shipped-last-180-days'] || '', reorderItems[key]['total-units-shipped-last-365-days'] || '', reorderItems[key]['num-afn-new-sellers'] || '', reorderItems[key]['Remove from Restock report'] || '', reorderItems[key]['In Stock or OOS - crenstone'] || '', reorderItems[key]['InBound crenstone'] || '', reorderItems[key]['Days OOS - crenstone'] || '', reorderItems[key]['Last 30 days of sales when in stock - crenstone'] || '', reorderItems[key]['In Stock or OOS - oredroc'] || '', reorderItems[key]['InBound oredroc'] || '', reorderItems[key]['Days OOS - oredroc'] || '', reorderItems[key]['Last 30 days of sales when in stock - oredroc'] || '', reorderItems[key]['Total Stock - Both Accounts'] || '', reorderItems[key]['Total Sales both accounts - 30 days'] || '', reorderItems[key]['Seasonal Tags'] || '', reorderItems[key]['OEM MFG Part Number'] || '', reorderItems[key]['OEM MFG'] || '', reorderItems[key]['Vendor Part number'] || '', reorderItems[key]['Item Description'] || '', reorderItems[key]['Vendor Name'] || '', reorderItems[key]['Vendor Price'] || '', reorderItems[key]['Quantity needed per ASIN'] || '', reorderItems[key]['Total price of ASIN'] || '', reorderItems[key]['Quantity needed for restock order 3x on 30 day sales'] || '', reorderItems[key]['Quantity needed for restock order 6x on 30 day sales'] || '', reorderItems[key]['Closeout / Retail Tag'] || '', reorderItems[key]['Can Order Again?'] || '', reorderItems[key]['Selling in accounts'] || '', reorderItems[key]['Has stock in accounts'] || '', reorderItems[key]['crenstone SKU'] || '', reorderItems[key]['crenstone FNSKU'] || '', reorderItems[key]['your-price'] || '', reorderItems[key]['lowest-afn-new-price'] || '', reorderItems[key]['lowest-afn-new-price'] - reorderItems[key]['your-price'] || '', reorderItems[key]['brand'] || '', reorderItems[key]['your-price'] || '', reorderItems[key]['sales-price'] || '', reorderItems[key]['estimated-fee-total'] || '', reorderItems[key]['estimated-future-fee'] || '', reorderItems[key]['estimated-shipping-cost'] || '', reorderItems[key]['total-inventory-cost'] || '', reorderItems[key]['overhead-rate'] || '', reorderItems[key]['profit'] || '', reorderItems[key]['future-profit'] || '', reorderItems[key]['crenstone-units-shipped-last-24-hrs'] || '', reorderItems[key]['crenstone-units-shipped-last-7-days'] || '', reorderItems[key]['crenstone-units-shipped-last-30-days'] || '', reorderItems[key]['crenstone-units-shipped-last-90-days'] || '', reorderItems[key]['crenstone-units-shipped-last-180-days'] || '', reorderItems[key]['crenstone-units-shipped-last-365-days'] || '', reorderItems[key]['your-price'] || '', reorderItems[key]['lowest-afn-new-price'] || '', reorderItems[key]['Below Current Price?'] || '', reorderItems[key]['brand'] || '', reorderItems[key]['your-price'] || '', reorderItems[key]['sales-price'] || '', reorderItems[key]['estimated-fee-total'] || '', reorderItems[key]['estimated-future-fee (Current Selling on Amazon + Future Fulfillment fees)'] || '', reorderItems[key]['estimated-shipping-cost'] || '', reorderItems[key]['total-inventory-cost'] || '', reorderItems[key]['overhead-rate'] || '', reorderItems[key]['profit'] || '', reorderItems[key]['future-profit'] || '', reorderItems[key]['oredroc-units-shipped-last-24-hrs'] || '', reorderItems[key]['oredroc-units-shipped-last-7-days'] || '', reorderItems[key]['oredroc-units-shipped-last-30-days'] || '', reorderItems[key]['oredroc-units-shipped-last-90-days'] || '', reorderItems[key]['oredroc-units-shipped-last-180-days'] || '', reorderItems[key]['oredroc-units-shipped-last-365-days'] || ''];
+      reorderRow = [snapshotDateFormatted || '', reorderItems[key]['crenstone']['asin'] || reorderItems[key]['oredroc']['asin'] || '', reorderItems[key]['crenstone']['product-name'] || reorderItems[key]['oredroc']['product-name'] || '', reorderItems[key]['crenstone']['sales-rank'] || reorderItems[key]['oredroc']['sales-rank'] || '', reorderItems[key]['crenstone']['product-group'] || reorderItems[key]['oredroc']['product-group'] || '', totalUnitsShippedLast24Hours || '', totalUnitsShippedLast7Days || '', totalUnitsShippedLast30Days || '', totalUnitsShippedLast90Days || '', totalUnitsShippedLast180Days || '', totalUnitsShippedLast365Days || '', reorderItems[key]['crenstone']['num-afn-new-sellers'] || reorderItems[key]['oredroc']['num-afn-new-sellers'] || '', reorderItems[key]['Remove from Restock report'] || '', reorderItems[key]['crenstone']['total-quantity'] || '', reorderItems[key]['crenstone']['in-bound-quantity'] || '', reorderItems[key]['Days OOS - crenstone'] || '', reorderItems[key]['Last 30 days of sales when in stock - crenstone'] || '', reorderItems[key]['oredroc']['total-quantity'] || '', reorderItems[key]['oredroc']['in-bound-quantity'] || '', reorderItems[key]['Days OOS - oredroc'] || '', reorderItems[key]['Last 30 days of sales when in stock - oredroc'] || '', (reorderItems[key]['crenstone']['total-quantity'] || 0) + (reorderItems[key]['oredroc']['total-quantity'] || 0), reorderItems[key]['Total Sales both accounts - 30 days'] || '', reorderItems[key]['Seasonal Tags'] || '', reorderItems[key]['OEM MFG Part Number'] || '', reorderItems[key]['OEM MFG'] || '', reorderItems[key]['Vendor Part number'] || '', reorderItems[key]['Item Description'] || '', reorderItems[key]['Vendor Name'] || '', reorderItems[key]['Vendor Price'] || '', reorderItems[key]['Quantity needed per ASIN'] || '', reorderItems[key]['Total price of ASIN'] || '', reorderItems[key]['Quantity needed for restock order 3x on 30 day sales'] || '', reorderItems[key]['Quantity needed for restock order 6x on 30 day sales'] || '', reorderItems[key]['Closeout / Retail Tag'] || '', reorderItems[key]['Can Order Again?'] || '', reorderItems[key]['Selling in accounts'] || '', reorderItems[key]['Has stock in accounts'] || '', reorderItems[key]['crenstone']['sku'] || '', reorderItems[key]['crenstone']['fnsku'] || '', reorderItems[key]['crenstone']['your-price'] || '', reorderItems[key]['crenstone']['lowest-afn-new-price'] || '', reorderItems[key]['crenstone']['lowest-afn-new-price'] - reorderItems[key]['crenstone']['your-price'] || '', reorderItems[key]['brand'] || '', reorderItems[key]['your-price'] || '', reorderItems[key]['sales-price'] || '', reorderItems[key]['estimated-fee-total'] || '', reorderItems[key]['estimated-future-fee'] || '', reorderItems[key]['estimated-shipping-cost'] || '', reorderItems[key]['total-inventory-cost'] || '', reorderItems[key]['overhead-rate'] || '', reorderItems[key]['profit'] || '', reorderItems[key]['future-profit'] || '', reorderItems[key]['crenstone']['units-shipped-last-24-hrs'] || '', reorderItems[key]['crenstone']['units-shipped-last-7-days'] || '', reorderItems[key]['crenstone']['units-shipped-last-30-days'] || '', reorderItems[key]['crenstone']['units-shipped-last-90-days'] || '', reorderItems[key]['crenstone']['units-shipped-last-180-days'] || '', reorderItems[key]['crenstone']['units-shipped-last-365-days'] || '', reorderItems[key]['oredroc']['sku'] || '', reorderItems[key]['oredroc']['fnsku'] || '', reorderItems[key]['oredroc']['your-price'] || '', reorderItems[key]['oredroc']['lowest-afn-new-price'] || '', reorderItems[key]['Below Current Price?'] || '', reorderItems[key]['oredroc']['brand'] || '', reorderItems[key]['oredroc']['your-price'] || '', reorderItems[key]['oredroc']['sales-price'] || '', reorderItems[key]['oredroc']['estimated-fee-total'] || '', reorderItems[key]['oredroc']['estimated-future-fee (Current Selling on Amazon + Future Fulfillment fees)'] || '', reorderItems[key]['estimated-shipping-cost'] || '', reorderItems[key]['total-inventory-cost'] || '', reorderItems[key]['overhead-rate'] || '', reorderItems[key]['profit'] || '', reorderItems[key]['future-profit'] || '', reorderItems[key]['oredroc']['units-shipped-last-24-hrs'] || '', reorderItems[key]['oredroc']['units-shipped-last-7-days'] || '', reorderItems[key]['oredroc']['units-shipped-last-30-days'] || '', reorderItems[key]['oredroc']['units-shipped-last-90-days'] || '', reorderItems[key]['oredroc']['units-shipped-last-180-days'] || '', reorderItems[key]['oredroc']['units-shipped-last-365-days'] || ''];
       reorderData.push(reorderRow);
     }
     return reorderData;
@@ -240,7 +258,7 @@
                 type: db.sequelize.QueryTypes.SELECT
               })
             ]).spread(function(oredrocInventoryResult, oredrocFeesResult, crenstoneInventoryResult, crenstoneFeesResult) {
-              var buffer, columnNames, data, fileName, formattedDate, i, j, key, l, len, len1, len2, len3, len4, len5, len6, len7, m, n, o, p, q, ref, ref1, ref2, ref3, reorderData, reorderItems, row, rowData, uniqueKey, worksheets;
+              var buffer, columnNames, data, fileName, formattedDate, i, j, k, key, l, len, len1, len2, len3, len4, len5, len6, len7, m, n, o, p, ref, ref1, ref2, ref3, reorderData, reorderItems, row, rowData, uniqueKey, worksheets;
               if (oredrocInventoryResult.length === 0 && oredrocFeesResult.length === 0 && crenstoneInventoryResult.length === 0 && crenstoneFeesResult.length === 0) {
                 return res.redirect('/');
               } else {
@@ -254,9 +272,10 @@
                   data.push(columnNames);
                   for (i = 0, len = oredrocInventoryResult.length; i < len; i++) {
                     row = oredrocInventoryResult[i];
-                    uniqueKey = "oredroc:" + row['asin'] + ":" + row['sku'];
+                    uniqueKey = row['asin'];
                     if (!_.contains(Object.keys(reorderItems), uniqueKey)) {
                       reorderItems[uniqueKey] = {};
+                      reorderItems[uniqueKey]["oredroc"] = {};
                     }
                     rowData = new Array();
                     ref = Object.keys(row);
@@ -269,7 +288,7 @@
                       } else if (key !== 'id' && key !== 'seller') {
                         rowData.push(row[key]);
                       }
-                      reorderItems[uniqueKey][key] = row[key];
+                      reorderItems[uniqueKey]["oredroc"][key] = row[key];
                     }
                     data.push(rowData);
                   }
@@ -284,16 +303,20 @@
                   });
                   data = new Array();
                   data.push(columnNames);
-                  for (l = 0, len2 = oredrocFeesResult.length; l < len2; l++) {
-                    row = oredrocFeesResult[l];
-                    uniqueKey = "oredroc:" + row['asin'] + ":" + row['sku'];
+                  for (k = 0, len2 = oredrocFeesResult.length; k < len2; k++) {
+                    row = oredrocFeesResult[k];
+                    uniqueKey = row['asin'];
                     if (!_.contains(Object.keys(reorderItems), uniqueKey)) {
                       reorderItems[uniqueKey] = {};
+                      reorderItems[uniqueKey]["oredroc"] = {};
+                    }
+                    if (!_.contains(Object.keys(reorderItems[uniqueKey], 'oredroc'))) {
+                      reorderItems[uniqueKey]["oredroc"] = {};
                     }
                     rowData = new Array();
                     ref1 = Object.keys(row);
-                    for (m = 0, len3 = ref1.length; m < len3; m++) {
-                      key = ref1[m];
+                    for (l = 0, len3 = ref1.length; l < len3; l++) {
+                      key = ref1[l];
                       if (key === 'snapshot-date') {
                         date = new Date(row[key]);
                         formattedDate = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
@@ -301,7 +324,7 @@
                       } else if (key !== 'id' && key !== 'seller') {
                         rowData.push(row[key]);
                       }
-                      reorderItems[uniqueKey][key] = row[key];
+                      reorderItems[uniqueKey]["oredroc"][key] = row[key];
                     }
                     data.push(rowData);
                   }
@@ -316,16 +339,20 @@
                   });
                   data = new Array();
                   data.push(columnNames);
-                  for (n = 0, len4 = crenstoneInventoryResult.length; n < len4; n++) {
-                    row = crenstoneInventoryResult[n];
-                    uniqueKey = "crenstone:" + row['asin'] + ":" + row['sku'];
+                  for (m = 0, len4 = crenstoneInventoryResult.length; m < len4; m++) {
+                    row = crenstoneInventoryResult[m];
+                    uniqueKey = row['asin'];
                     if (!_.contains(Object.keys(reorderItems), uniqueKey)) {
                       reorderItems[uniqueKey] = {};
+                      reorderItems[uniqueKey]["crenstone"] = {};
+                    }
+                    if (!_.contains(Object.keys(reorderItems[uniqueKey], 'crenstone'))) {
+                      reorderItems[uniqueKey]["crenstone"] = {};
                     }
                     rowData = new Array();
                     ref2 = Object.keys(row);
-                    for (o = 0, len5 = ref2.length; o < len5; o++) {
-                      key = ref2[o];
+                    for (n = 0, len5 = ref2.length; n < len5; n++) {
+                      key = ref2[n];
                       if (key === 'snapshot-date') {
                         date = new Date(row[key]);
                         formattedDate = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
@@ -333,7 +360,7 @@
                       } else if (key !== 'id' && key !== 'seller') {
                         rowData.push(row[key]);
                       }
-                      reorderItems[uniqueKey][key] = row[key];
+                      reorderItems[uniqueKey]["crenstone"][key] = row[key];
                     }
                     data.push(rowData);
                   }
@@ -348,16 +375,20 @@
                   });
                   data = new Array();
                   data.push(columnNames);
-                  for (p = 0, len6 = crenstoneFeesResult.length; p < len6; p++) {
-                    row = crenstoneFeesResult[p];
-                    uniqueKey = "crenstone:" + row['asin'] + ":" + row['sku'];
+                  for (o = 0, len6 = crenstoneFeesResult.length; o < len6; o++) {
+                    row = crenstoneFeesResult[o];
+                    uniqueKey = row['asin'];
                     if (!_.contains(Object.keys(reorderItems), uniqueKey)) {
                       reorderItems[uniqueKey] = {};
+                      reorderItems[uniqueKey]["crenstone"] = {};
+                    }
+                    if (!_.contains(Object.keys(reorderItems[uniqueKey], 'crenstone'))) {
+                      reorderItems[uniqueKey]["crenstone"] = {};
                     }
                     rowData = new Array();
                     ref3 = Object.keys(row);
-                    for (q = 0, len7 = ref3.length; q < len7; q++) {
-                      key = ref3[q];
+                    for (p = 0, len7 = ref3.length; p < len7; p++) {
+                      key = ref3[p];
                       if (key === 'snapshot-date') {
                         date = new Date(row[key]);
                         formattedDate = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
@@ -365,7 +396,7 @@
                       } else if (key !== 'id' && key !== 'seller') {
                         rowData.push(row[key]);
                       }
-                      reorderItems[uniqueKey][key] = row[key];
+                      reorderItems[uniqueKey]["crenstone"][key] = row[key];
                     }
                     data.push(rowData);
                   }
