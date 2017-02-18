@@ -159,7 +159,6 @@ outputReorderColumns = ["snapshot-date"
 ]
 
 buildReorderData = (reorderItems) ->
-	console.log "building"
 	reorderData = []
 	reorderData.push(outputReorderColumns)
 	for key in Object.keys(reorderItems)
@@ -314,6 +313,20 @@ buildReorderData = (reorderItems) ->
 		reorderData.push(reorderRow)
 	reorderData
 
+sortInventoryDataByAsin = (data) ->
+	nameColumn = data.shift()
+	data.sort((a, b) ->
+		if a[3] == b[3]
+			0
+		else
+			a[3] < b[3] ? -1 : 1 #ASIN is in the 4th column
+	)
+	data.unshift(nameColumn)
+	data
+
+removeFeeDataDuplicates = (data) ->
+	_.uniq(data, false, (row) -> row[2])
+
 app.get('/ping', (req, res) ->
 	res.sendStatus(200)
 )
@@ -392,10 +405,29 @@ else
 								else
 									worksheets = []
 									reorderItems = []
+									inventoryData = new Array()
+									feeData = new Array()
+									inventoryColumnNames = []
+									feeColumnNames = []
 									if oredrocInventoryResult.length > 0
-										columnNames = _.filter(Object.keys(oredrocInventoryResult[0]), (key) -> key != 'id' and key != 'seller')
-										data = new Array()
-										data.push(columnNames)
+										inventoryColumnNames = _.filter(Object.keys(oredrocInventoryResult[0]), (key) -> key != 'id' and key != 'seller')
+										inventoryColumnNames.push("Account")
+										inventoryColumnNames.push("Have to send?")
+										inventoryColumnNames.push("10x total sales x 30 d")
+									else if crenstoneInventoryResult.length > 0
+										inventoryColumnNames = _.filter(Object.keys(oredrocInventoryResult[0]), (key) -> key != 'id' and key != 'seller')
+										inventoryColumnNames.push("Account")
+										inventoryColumnNames.push("Have to send?")
+										inventoryColumnNames.push("10x total sales x 30 d")
+									inventoryData.push(inventoryColumnNames)
+
+									if oredrocFeesResult.length > 0
+										feeColumnNames = _.filter(Object.keys(oredrocFeesResult[0]), (key) -> key != 'id' and key != 'seller' and key != 'snapshot-date')
+									else if crenstoneFeesResult.length > 0
+										feeColumnNames = _.filter(Object.keys(crenstoneFeesResult[0]), (key) -> key != 'id' and key != 'seller' and key != 'snapshot-date')
+									feeData.push(feeColumnNames)
+
+									if oredrocInventoryResult.length > 0
 										for row in oredrocInventoryResult
 											uniqueKey = row['asin']
 											if !_.contains(Object.keys(reorderItems), uniqueKey)
@@ -410,12 +442,10 @@ else
 												else if key != 'id' and key != 'seller'
 													rowData.push(row[key])
 												reorderItems[uniqueKey]["oredroc"][key] = row[key]
-											data.push(rowData)
-										worksheets.push({name: "Oredroc Inventory Health", data: data})
+											rowData.push('Oredroc')
+											inventoryData.push(rowData)
+										#worksheets.push({name: "Oredroc Inventory Health", data: data})
 									if oredrocFeesResult.length > 0
-										columnNames = _.filter(Object.keys(oredrocFeesResult[0]), (key) -> key != 'id' and key != 'seller')
-										data = new Array()
-										data.push(columnNames)
 										for row in oredrocFeesResult
 											uniqueKey = row['asin']
 											if !_.contains(Object.keys(reorderItems), uniqueKey)
@@ -425,19 +455,12 @@ else
 												reorderItems[uniqueKey]["oredroc"] = {}
 											rowData = new Array()
 											for key in Object.keys(row)
-												if key == 'snapshot-date'
-													date = new Date(row[key])
-													formattedDate = date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate()
-													rowData.push(formattedDate)
-												else if key != 'id' and key != 'seller'
+												if key != 'id' and key != 'seller' and key != 'snapshot-date'
 													rowData.push(row[key])
 												reorderItems[uniqueKey]["oredroc"][key] = row[key]
-											data.push(rowData)
-										worksheets.push({name: "Oredroc FBA Fees", data: data})
+											feeData.push(rowData)
+										#worksheets.push({name: "Oredroc FBA Fees", data: data})
 									if crenstoneInventoryResult.length > 0
-										columnNames = _.filter(Object.keys(crenstoneInventoryResult[0]), (key) -> key != 'id' and key != 'seller')
-										data = new Array()
-										data.push(columnNames)
 										for row in crenstoneInventoryResult
 											uniqueKey = row['asin']
 											if !_.contains(Object.keys(reorderItems), uniqueKey)
@@ -454,12 +477,10 @@ else
 												else if key != 'id' and key != 'seller'
 													rowData.push(row[key])
 												reorderItems[uniqueKey]["crenstone"][key] = row[key]
-											data.push(rowData)
-										worksheets.push({name: "Crenstone Inventory Health", data: data})
+											rowData.push('Crenstone')
+											inventoryData.push(rowData)
+										#worksheets.push({name: "Crenstone Inventory Health", data: data})
 									if crenstoneFeesResult.length > 0
-										columnNames = _.filter(Object.keys(crenstoneFeesResult[0]), (key) -> key != 'id' and key != 'seller')
-										data = new Array()
-										data.push(columnNames)
 										for row in crenstoneFeesResult
 											uniqueKey = row['asin']
 											if !_.contains(Object.keys(reorderItems), uniqueKey)
@@ -469,22 +490,18 @@ else
 												reorderItems[uniqueKey]["crenstone"] = {}
 											rowData = new Array()
 											for key in Object.keys(row)
-												if key == 'snapshot-date'
-													date = new Date(row[key])
-													formattedDate = date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate()
-													rowData.push(formattedDate)
-												else if key != 'id' and key != 'seller'
+												if key != 'id' and key != 'seller' and key != 'snapshot-date'
 													rowData.push(row[key])
 												reorderItems[uniqueKey]["crenstone"][key] = row[key]
-											data.push(rowData)
-										worksheets.push({name: "Crenstone FBA Fees", data: data})
+											feeData.push(rowData)
 
-									###for key in Object.keys(reorderItems)
-										if reorderItems[key]['condition'] != undefined
-											console.log reorderItems[key]###
-
+									inventoryData = sortInventoryDataByAsin(inventoryData)
+									feeData = removeFeeDataDuplicates(feeData)
 									reorderData = buildReorderData(reorderItems)
-									worksheets.unshift({name: "Reorder File", data: reorderData})
+									
+									worksheets.push({name: "Reorder File", data: reorderData})
+									worksheets.push({name: "From Amazon INV Health", data: inventoryData})
+									worksheets.push({name: "From Amazon Fee Preview", data: feeData})
 
 									buffer = xlsx.build(worksheets)
 
