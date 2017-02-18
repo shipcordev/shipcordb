@@ -203,7 +203,7 @@
       oredrocFNSKU = reorderItems[key]['oredroc']['fnsku'] || '';
       ourCurrentPriceInventoryOredroc = reorderItems[key]['oredroc']['your-price'] || 0;
       lowestPrimePriceOredroc = reorderItems[key]['oredroc']['lowest-afn-new-price'] || 0;
-      belowCurrentPriceOredroc = lowestPrimePriceCrenstone - ourCurrentPriceInventoryCrenstone;
+      belowCurrentPriceOredroc = lowestPrimePriceOredroc - ourCurrentPriceInventoryOredroc;
       oredrocUnitsShippedLast24Hours = reorderItems[key]['oredroc']['units-shipped-last-24-hrs'] || 0;
       oredrocUnitsShippedLast7Days = reorderItems[key]['oredroc']['units-shipped-last-7-days'] || 0;
       oredrocUnitsShippedLast30Days = reorderItems[key]['oredroc']['units-shipped-last-30-days'] || 0;
