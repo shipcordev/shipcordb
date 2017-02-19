@@ -390,6 +390,7 @@
                     if (!_.contains(Object.keys(reorderItems), uniqueKey)) {
                       reorderItems[uniqueKey] = {};
                       reorderItems[uniqueKey]["oredroc"] = {};
+                      reorderItems[uniqueKey]["crenstone"] = {};
                     }
                     rowData = new Array();
                     ref = Object.keys(row);
@@ -415,9 +416,7 @@
                     if (!_.contains(Object.keys(reorderItems), uniqueKey)) {
                       reorderItems[uniqueKey] = {};
                       reorderItems[uniqueKey]["oredroc"] = {};
-                    }
-                    if (!_.contains(Object.keys(reorderItems[uniqueKey], 'oredroc'))) {
-                      reorderItems[uniqueKey]["oredroc"] = {};
+                      reorderItems[uniqueKey]["crenstone"] = {};
                     }
                     rowData = new Array();
                     ref1 = Object.keys(row);
@@ -438,9 +437,7 @@
                     if (!_.contains(Object.keys(reorderItems), uniqueKey)) {
                       reorderItems[uniqueKey] = {};
                       reorderItems[uniqueKey]["crenstone"] = {};
-                    }
-                    if (!_.contains(Object.keys(reorderItems[uniqueKey], 'crenstone'))) {
-                      reorderItems[uniqueKey]["crenstone"] = {};
+                      reorderItems[uniqueKey]["oredroc"] = {};
                     }
                     rowData = new Array();
                     ref2 = Object.keys(row);
@@ -466,9 +463,7 @@
                     if (!_.contains(Object.keys(reorderItems), uniqueKey)) {
                       reorderItems[uniqueKey] = {};
                       reorderItems[uniqueKey]["crenstone"] = {};
-                    }
-                    if (!_.contains(Object.keys(reorderItems[uniqueKey], 'crenstone'))) {
-                      reorderItems[uniqueKey]["crenstone"] = {};
+                      reorderItems[uniqueKey]["oredroc"] = {};
                     }
                     rowData = new Array();
                     ref3 = Object.keys(row);

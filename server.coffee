@@ -166,6 +166,7 @@ buildReorderData = (reorderItems) ->
 			reorderItems[key]['crenstone'] = {}
 		if reorderItems[key]['oredroc'] == undefined
 			reorderItems[key]['oredroc'] = {}
+		
 		snapshotDate = null
 		snapshotDateFormatted = null
 		if reorderItems[key]["crenstone"] != undefined and reorderItems[key]["crenstone"]["snapshot-date"] != undefined
@@ -499,6 +500,7 @@ else
 											if !_.contains(Object.keys(reorderItems), uniqueKey)
 												reorderItems[uniqueKey] = {}
 												reorderItems[uniqueKey]["oredroc"] = {}
+												reorderItems[uniqueKey]["crenstone"] = {}
 											rowData = new Array()
 											for key in Object.keys(row)
 												if key == 'snapshot-date'
@@ -517,8 +519,7 @@ else
 											if !_.contains(Object.keys(reorderItems), uniqueKey)
 												reorderItems[uniqueKey] = {}
 												reorderItems[uniqueKey]["oredroc"] = {}
-											if !_.contains(Object.keys(reorderItems[uniqueKey], 'oredroc'))
-												reorderItems[uniqueKey]["oredroc"] = {}
+												reorderItems[uniqueKey]["crenstone"] = {}
 											rowData = new Array()
 											for key in Object.keys(row)
 												if key != 'id' and key != 'seller' and key != 'snapshot-date'
@@ -532,8 +533,7 @@ else
 											if !_.contains(Object.keys(reorderItems), uniqueKey)
 												reorderItems[uniqueKey] = {}
 												reorderItems[uniqueKey]["crenstone"] = {}
-											if !_.contains(Object.keys(reorderItems[uniqueKey], 'crenstone'))
-												reorderItems[uniqueKey]["crenstone"] = {}
+												reorderItems[uniqueKey]["oredroc"] = {}
 											rowData = new Array()
 											for key in Object.keys(row)
 												if key == 'snapshot-date'
@@ -541,7 +541,7 @@ else
 													formattedDate = date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate()
 													rowData.push(formattedDate)
 												else if key != 'id' and key != 'seller'
-													rowData.push(row[key])
+													rowData.push(row[key])	
 												reorderItems[uniqueKey]["crenstone"][key] = row[key]
 											rowData.push('Crenstone')
 											inventoryData.push(rowData)
@@ -552,8 +552,7 @@ else
 											if !_.contains(Object.keys(reorderItems), uniqueKey)
 												reorderItems[uniqueKey] = {}
 												reorderItems[uniqueKey]["crenstone"] = {}
-											if !_.contains(Object.keys(reorderItems[uniqueKey], 'crenstone'))
-												reorderItems[uniqueKey]["crenstone"] = {}
+												reorderItems[uniqueKey]["oredroc"] = {}
 											rowData = new Array()
 											for key in Object.keys(row)
 												if key != 'id' and key != 'seller' and key != 'snapshot-date'
