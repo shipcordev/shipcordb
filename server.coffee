@@ -178,23 +178,23 @@ buildReorderData = (reorderItems) ->
 		productName = reorderItems[key]['crenstone']['product-name'] || reorderItems[key]['oredroc']['product-name'] || ''
 		salesRank = reorderItems[key]['crenstone']['sales-rank'] || reorderItems[key]['oredroc']['sales-rank'] || '' 
 		productGroup = reorderItems[key]['crenstone']['product-group'] || reorderItems[key]['oredroc']['product-group'] || ''
-		totalUnitsShippedLast24Hours = (reorderItems[key]['crenstone']['units-shipped-last-24-hrs
-'] || 0) + (reorderItems[key]['oredroc']['units-shipped-last-24-hrs
+		totalUnitsShippedLast24Hours = Number(reorderItems[key]['crenstone']['units-shipped-last-24-hrs
+'] || 0) + Number(reorderItems[key]['oredroc']['units-shipped-last-24-hrs
 '] || 0)
-		totalUnitsShippedLast7Days = (reorderItems[key]['crenstone']['units-shipped-last-7-days
-'] || 0) + (reorderItems[key]['oredroc']['units-shipped-last-7-days
+		totalUnitsShippedLast7Days = Number(reorderItems[key]['crenstone']['units-shipped-last-7-days
+'] || 0) + Number(reorderItems[key]['oredroc']['units-shipped-last-7-days
 '] || 0)
-		totalUnitsShippedLast30Days = (reorderItems[key]['crenstone']['units-shipped-last-30-days
-'] || 0) + (reorderItems[key]['oredroc']['units-shipped-last-30-days
+		totalUnitsShippedLast30Days = Number(reorderItems[key]['crenstone']['units-shipped-last-30-days
+'] || 0) + Number(reorderItems[key]['oredroc']['units-shipped-last-30-days
 '] || 0)
-		totalUnitsShippedLast90Days = (reorderItems[key]['crenstone']['units-shipped-last-90-days
-'] || 0) + (reorderItems[key]['oredroc']['units-shipped-last-90-days
+		totalUnitsShippedLast90Days = Number(reorderItems[key]['crenstone']['units-shipped-last-90-days
+'] || 0) + Number(reorderItems[key]['oredroc']['units-shipped-last-90-days
 '] || 0)
-		totalUnitsShippedLast180Days = (reorderItems[key]['crenstone']['units-shipped-last-180-days
-'] || 0) + (reorderItems[key]['oredroc']['units-shipped-last-180-days
+		totalUnitsShippedLast180Days = Number(reorderItems[key]['crenstone']['units-shipped-last-180-days
+'] || 0) + Number(reorderItems[key]['oredroc']['units-shipped-last-180-days
 '] || 0)
-		totalUnitsShippedLast365Days = (reorderItems[key]['crenstone']['units-shipped-last-365-days
-'] || 0) + (reorderItems[key]['oredroc']['units-shipped-last-365-days
+		totalUnitsShippedLast365Days = Number(reorderItems[key]['crenstone']['units-shipped-last-365-days
+'] || 0) + Number(reorderItems[key]['oredroc']['units-shipped-last-365-days
 '] || 0)
 		numAfnNewSellers = reorderItems[key]['crenstone']['num-afn-new-sellers'] || reorderItems[key]['oredroc']['num-afn-new-sellers'] || ''
 		removeFromRestockReport = reorderItems[key]['crenstone']['remove-from-restock-report'] || reorderItems[key]['oredroc']['remove-from-restock-report'] || ''
@@ -206,8 +206,8 @@ buildReorderData = (reorderItems) ->
 		inboundOredroc = reorderItems[key]['oredroc']['in-bound-quantity'] || ''
 		daysOOSOredroc = reorderItems[key]['oredroc']['days-OOS'] || ''
 		last30DaysOfSalesWhenInStockOredroc = reorderItems[key]['oredroc']['units-shipped-last-30-days'] || ''
-		totalStockBothAccounts = (reorderItems[key]['crenstone']['sellable-quantity'] || 0) + (reorderItems[key]['crenstone']['in-bound-quantity'] || 0) + (reorderItems[key]['oredroc']['sellable-quantity'] || 0) + (reorderItems[key]['oredroc']['in-bound-quantity'] || 0)
-		totalSalesBothAccounts30Days = (reorderItems[key]['crenstone']['units-shipped-last-30-days'] || 0) + (reorderItems[key]['oredroc']['units-shipped-last-30-days'] || 0)
+		totalStockBothAccounts = Number(reorderItems[key]['crenstone']['sellable-quantity'] || 0) + Number(reorderItems[key]['crenstone']['in-bound-quantity'] || 0) + Number(reorderItems[key]['oredroc']['sellable-quantity'] || 0) + Number(reorderItems[key]['oredroc']['in-bound-quantity'] || 0)
+		totalSalesBothAccounts30Days = Number(reorderItems[key]['crenstone']['units-shipped-last-30-days'] || 0) + Number(reorderItems[key]['oredroc']['units-shipped-last-30-days'] || 0)
 		seasonalTags = reorderItems[key]['crenstone']['seasonal-tags'] || reorderItems[key]['oredroc']['seasonal-tags'] || ''
 		oemMfgPartNumber = reorderItems[key]['crenstone']['oem-mfg-part-number'] || reorderItems[key]['oredroc']['oem-mfg-part-number'] || ''
 		oemMfg = reorderItems[key]['crenstone']['oem-mfg'] || reorderItems[key]['oredroc']['oem-mfg'] || ''
@@ -217,30 +217,30 @@ buildReorderData = (reorderItems) ->
 		vendorPrice = reorderItems[key]['crenstone']['vendor-price'] || reorderItems[key]['oredroc']['vendor-price'] || ''
 		quantityNeededPerASIN = reorderItems[key]['crenstone']['quantity-needed-per-asin'] || reorderItems[key]['oredroc']['quantity-needed-per-asin'] || ''
 		totalPricePerASIN = ''
-		quantityNeededForRestockOrder3xOn30DaySales = 3 * ((reorderItems[key]['crenstone']['quantity-needed-per-asin'] || reorderItems[key]['oredroc']['quantity-needed-per-asin'] || 0) - totalStockBothAccounts)
-		quantityNeededForRestockOrder6xOn30DaySales = 6 * ((reorderItems[key]['crenstone']['quantity-needed-per-asin'] || reorderItems[key]['oredroc']['quantity-needed-per-asin'] || 0) - totalStockBothAccounts)
+		quantityNeededForRestockOrder3xOn30DaySales = 3 * (Number(reorderItems[key]['crenstone']['quantity-needed-per-asin'] || reorderItems[key]['oredroc']['quantity-needed-per-asin'] || 0) - Number(totalStockBothAccounts))
+		quantityNeededForRestockOrder6xOn30DaySales = 6 * (Number(reorderItems[key]['crenstone']['quantity-needed-per-asin'] || reorderItems[key]['oredroc']['quantity-needed-per-asin'] || 0) - Number(totalStockBothAccounts))
 		closeoutRetailTag = reorderItems[key]['crenstone']['closeout-retail-tag'] || reorderItems[key]['oredroc']['closeout-retail-tag'] || ''
 		canOrderAgain = reorderItems[key]['crenstone']['can-order-again'] || reorderItems[key]['oredroc']['can-order-again'] || ''
 		sellingInAccounts = ''
-		if (reorderItems[key]['crenstone']['sellable-quantity'] || 0) > 0
+		if Number(reorderItems[key]['crenstone']['sellable-quantity'] || 0) > 0
 			sellingInAccounts += 'Crenstone '
-		if (reorderItems[key]['oredroc']['sellable-quantity'] || 0) > 0
+		if Number(reorderItems[key]['oredroc']['sellable-quantity'] || 0) > 0
 			sellingInAccounts += 'Oredroc'
 		hasStockInAccounts = ''
-		if (reorderItems[key]['crenstone']['sellable-quantity'] || 0) > 0
+		if Number(reorderItems[key]['crenstone']['sellable-quantity'] || 0) > 0
 			hasStockInAccounts += 'Crenstone '
-		if (reorderItems[key]['oredroc']['sellable-quantity'] || 0) > 0
+		if Number(reorderItems[key]['oredroc']['sellable-quantity'] || 0) > 0
 			hasStockInAccounts += 'Oredroc'
 		crenstoneSKU = reorderItems[key]['crenstone']['sku'] || ''
 		crenstoneFNSKU = reorderItems[key]['crenstone']['fnsku'] || ''
 		ourCurrentPriceInventoryCrenstone = reorderItems[key]['crenstone']['your-price'] || 0
 		lowestPrimePriceCrenstone = reorderItems[key]['crenstone']['lowest-afn-new-price'] || 0
-		belowCurrentPriceCrenstone = lowestPrimePriceCrenstone - ourCurrentPriceInventoryCrenstone
+		belowCurrentPriceCrenstone = Number(lowestPrimePriceCrenstone) - Number(ourCurrentPriceInventoryCrenstone)
 		brand = reorderItems[key]['crenstone']['brand'] || reorderItems[key]['oredroc']['brand'] || ''
 		yourPrice = reorderItems[key]['crenstone']['your-price'] || reorderItems[key]['oredroc']['your-price'] || ''
 		salesPrice = reorderItems[key]['crenstone']['sales-price'] || reorderItems[key]['oredroc']['sales-price'] || ''
 		estimatedFeeTotal = reorderItems[key]['crenstone']['estimated-fee-total'] || reorderItems[key]['oredroc']['estimated-fee-total'] || ''
-		estimatedFutureFee = lowestPrimePriceCrenstone + (reorderItems[key]['crenstone']['expected-future-fulfillment-fee-per-unit'] || reorderItems[key]['oredroc']['expected-future-fulfillment-fee-per-unit'] || 0)
+		estimatedFutureFee = Number(lowestPrimePriceCrenstone) + Number(reorderItems[key]['crenstone']['expected-future-fulfillment-fee-per-unit'] || reorderItems[key]['oredroc']['expected-future-fulfillment-fee-per-unit'] || 0)
 		estimatedShippingCost = reorderItems[key]['crenstone']['estimated-shipping-cost'] || reorderItems[key]['oredroc']['estimated-shipping-cost'] || ''
 		totalInventoryCost = ''
 		overheadRate = ''
@@ -256,7 +256,7 @@ buildReorderData = (reorderItems) ->
 		oredrocFNSKU = reorderItems[key]['oredroc']['fnsku'] || ''
 		ourCurrentPriceInventoryOredroc = reorderItems[key]['oredroc']['your-price'] || 0
 		lowestPrimePriceOredroc = reorderItems[key]['oredroc']['lowest-afn-new-price'] || 0
-		belowCurrentPriceOredroc = lowestPrimePriceOredroc - ourCurrentPriceInventoryOredroc
+		belowCurrentPriceOredroc = Number(lowestPrimePriceOredroc) - Number(ourCurrentPriceInventoryOredroc)
 		oredrocUnitsShippedLast24Hours = reorderItems[key]['oredroc']['units-shipped-last-24-hrs'] || 0
 		oredrocUnitsShippedLast7Days = reorderItems[key]['oredroc']['units-shipped-last-7-days'] || 0
 		oredrocUnitsShippedLast30Days = reorderItems[key]['oredroc']['units-shipped-last-30-days'] || 0
