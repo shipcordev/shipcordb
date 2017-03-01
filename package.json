@@ -3,17 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
-  "dependencies": {},
-  "devDependencies": {},
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
-  },
-  "author": "Alberto Pareja-Lecaros",
-  "license": "ISC",
   "dependencies": {
     "bcrypt": "^1.0.2",
     "body-parser": "^1.16.0",
+    "busboy": "^0.2.14",
     "coffee-script": "^1.12.3",
     "compression": "^1.6.2",
     "connect-flash": "^0.1.1",
@@ -29,6 +22,14 @@
     "pug": "^2.0.0-beta11",
     "q": "^1.4.1",
     "sequelize": "^3.30.1",
+    "stream-to-array": "^2.3.0",
     "underscore": "^1.8.3"
-  }
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Alberto Pareja-Lecaros",
+  "license": "ISC"
 }

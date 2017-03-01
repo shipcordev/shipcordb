@@ -3,7 +3,9 @@ config = require('../config')
 
 Sequelize = require('sequelize')
 
-sequelize = new Sequelize(config.DATABASE_URL)
+sequelize = new Sequelize(config.DATABASE_URL, {
+	logging: false	
+})
 
 User = require('./user').define(sequelize)
 

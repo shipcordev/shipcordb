@@ -9,3 +9,8 @@ block content
 		div.col-lg-3.col-md-6
 			a.btn.btn-default.btn-block(href="/reports/download")
 				| Download Latest Reorder Report
+		div.col-lg-3.col-md-6
+			form(method="POST", role="form", action="/reports/upload?_csrf=" + csrfToken, enctype="multipart/form-data")
+				label(for="reorder") Upload Reorder File
+				input(name="reorder", id="reorderInput", type="file")
+				input.btn.btn-default(type="submit", value="UPLOAD")

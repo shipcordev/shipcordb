@@ -5,6 +5,8 @@ bodyParser = require('body-parser')
 compression = require('compression')
 session = require('express-session')
 flash = require('connect-flash')
+Busboy = require('busboy')
+toArray = require('stream-to-array')
 bcrypt = require('bcrypt')
 passport = require('passport')
 xlsx = require('node-xlsx').default
@@ -160,7 +162,7 @@ outputReorderColumns = ["snapshot-date"
 
 buildReorderData = (reorderItems) ->
 	reorderData = []
-	reorderData.push(outputReorderColumns)
+	asinKeys = new Set()
 	for key in Object.keys(reorderItems)
 		if reorderItems[key]['crenstone'] == undefined
 			reorderItems[key]['crenstone'] = {}
@@ -264,36 +266,6 @@ buildReorderData = (reorderItems) ->
 		oredrocUnitsShippedLast90Days = reorderItems[key]['oredroc']['units-shipped-last-90-days'] || 0
 		oredrocUnitsShippedLast180Days = reorderItems[key]['oredroc']['units-shipped-last-180-days'] || 0
 		oredrocUnitsShippedLast365Days = reorderItems[key]['oredroc']['units-shipped-last-365-days'] || 0
-			
-		###quantityNeededForRestock3x = 3 * (reorderItems[key]['sellable-quantity'] + reorderItems[key]['in-bound-quantity'])
-		quantityNeededForRestock6x = 6 * (reorderItems[key]['sellable-quantity'] + reorderItems[key]['in-bound-quantity'])
-		reorderItems[key]['quantity-needed-for-restock-3x'] = quantityNeededForRestock3x
-		reorderItems[key]['quantity-needed-for-restock-6x'] = quantityNeededForRestock6x		
-		reorderItems[key]['below-current-price'] = reorderItems[key]['lowest-afn-new-price'] - reorderItems[key]['your-price']
-		reorderItems[key]['instock-' + seller] = reorderItems[key]['sellable-quantity']
-		if seller == 'crenstone'
-			otherSeller = 'oredroc'
-		else
-			otherSeller = 'crenstone'
-		reorderItems[key]['instock-' + otherSeller] = 0
-
-		reorderItems[key][seller + '-units-shipped-last-24-hrs'] = reorderItems[key]['units-shipped-last-24-hrs']
-		reorderItems[key][seller + '-units-shipped-last-7-days'] = reorderItems[key]['units-shipped-last-7-days']
-		reorderItems[key][seller + '-units-shipped-last-30-days'] = reorderItems[key]['units-shipped-last-30-days']
-		reorderItems[key][seller + '-units-shipped-last-90-days'] = reorderItems[key]['units-shipped-last-90-days']
-		reorderItems[key][seller + '-units-shipped-last-180-days'] = reorderItems[key]['units-shipped-last-180-days']
-		reorderItems[key][seller + '-units-shipped-last-365-days'] = reorderItems[key]['units-shipped-last-365-days']
-		reorderItems[key]['In Stock or OOS - ' + seller] = reorderItems[key]['total-quantity']
-		reorderItems[key]['InBound ' + seller] = reorderItems[key]['in-bound-quantity']
-		reorderItems[key]['Last 30 days of sales when in stock - ' + seller] = reorderItems[key]['units-shipped-last-30-days']
-		reorderItems[key]['Total Stock - Both Accounts'] = reorderItems[key]['total-quantity']
-		reorderItems[key]['Total Sales both accounts - 30 days'] = reorderItems[key]['units-shipped-last-30-days']
-		reorderItems[key]['Selling in accounts'] = seller
-		reorderItems[key]['Has stock in accounts'] = if reorderItems[key]['sellable-quantity'] != undefined and reorderItems[key]['sellable-quantity'] > 0 then seller else ''
-		reorderItems[key][seller + ' SKU'] = reorderItems[key]['sku']
-		reorderItems[key][seller + ' FNSKU'] = reorderItems[key]['fnsku']###		
-
-		#finish making reorder row, add to data, then return all the rows and create the output file. Easy.
 
 		reorderRow = [
 			snapshotDateFormatted || ''
@@ -322,7 +294,7 @@ buildReorderData = (reorderItems) ->
 			 ,seasonalTags
 			 ,oemMfgPartNumber
 			 ,oemMfg
-			 ,vendorPartNumber
+			 ,vendorPartNumber#26
 			 ,itemDescription
 			 ,vendorName
 			 ,vendorPrice
@@ -334,7 +306,7 @@ buildReorderData = (reorderItems) ->
 			 ,canOrderAgain
 			 ,sellingInAccounts
 			 ,hasStockInAccounts
-			 ,crenstoneSKU
+			 ,crenstoneSKU#38
 			 ,crenstoneFNSKU
 			 ,ourCurrentPriceInventoryCrenstone
 			 ,lowestPrimePriceCrenstone
@@ -355,7 +327,7 @@ buildReorderData = (reorderItems) ->
 			 ,crenstoneUnitsShippedLast90Days
 			 ,crenstoneUnitsShippedLast180Days
 			 ,crenstoneUnitsShippedLast365Days
-			 ,oredrocSKU
+			 ,oredrocSKU#59
 			 ,oredrocFNSKU
 			 ,ourCurrentPriceInventoryOredroc
 			 ,lowestPrimePriceOredroc
@@ -378,7 +350,72 @@ buildReorderData = (reorderItems) ->
 			 ,oredrocUnitsShippedLast365Days
 		]
 		reorderData.push(reorderRow)
-	reorderData
+		asinKeys.add(asin)
+	#TODO: get all manual input data for each asin, meaning compile all unique ASINs when building
+	#the rows, then query the database on all of those asins in the manual-input table
+	console.log "Okay, let's get the asin key query..."
+	asinKeyArray = Array.from(asinKeys)
+	#TODO: Set Iterator to array and THEN join
+	asinKeyQuery = '(' + _.map(asinKeyArray, (asin) -> '\'' + asin + '\'').join(',') + ')'
+	selectQuery = 'SELECT * FROM \"manual-inputs\" WHERE asin IN ' + asinKeyQuery 
+	console.log "Alright let's Q all"
+	deferred = Q.defer()
+	db.sequelize.query(selectQuery, { type: db.sequelize.QueryTypes.SELECT})
+	.then (manualInputs) ->
+		console.log "Reorder and manual inputs..."
+		if manualInputs.length > 0
+			console.log "Good good"
+			reorderDataByAsin = _.groupBy(reorderData, (row) -> row[1])
+			#console.log reorderDataByAsin
+			manualInputsByAsin = _.groupBy(manualInputs, (manualInput) -> manualInput['asin'])
+			console.log manualInputsByAsin['B01LGECQ96']
+			for manualInputAsin in Object.keys(manualInputsByAsin)
+				#find reorderData that matches crenstoneSKU, oredrocSKU, asin, and vendorPartNumber
+				#but only if the length of reorderData matches manual input
+				#first step is to create as many rows as there are vendor part numbers
+				reorderIndices = []
+				reorderIndex = 0
+				for row in reorderData
+					if row[1] == manualInputAsin
+						break
+					reorderIndex++
+				if reorderIndex < reorderData.length
+					reorderIndices.push(reorderIndex)
+					if manualInputsByAsin[manualInputAsin].length > 1
+						lastReorderIndex = reorderData.length
+						numDuplicates = manualInputsByAsin[manualInputAsin].length - 1
+						reorderDataCopy = JSON.parse(JSON.stringify(reorderData[reorderIndex]))
+						while numDuplicates > 0
+							reorderData.push(reorderDataCopy)
+							reorderIndices.push(lastReorderIndex)
+							lastReorderIndex++
+							numDuplicates--
+
+					while reorderIndices.length > 0	
+						currentIndex = reorderIndices.shift()
+						console.log currentIndex
+						console.log reorderData[currentIndex]
+						reorderData[currentIndex][38] = manualInputsByAsin[manualInputAsin][2]
+						reorderData[currentIndex][59] = manualInputsByAsin[manualInputAsin][3]
+						reorderData[currentIndex][12] = manualInputsByAsin[manualInputAsin][4]
+						reorderData[currentIndex][23] = manualInputsByAsin[manualInputAsin][5]
+						reorderData[currentIndex][24] = manualInputsByAsin[manualInputAsin][6]
+						reorderData[currentIndex][25] = manualInputsByAsin[manualInputAsin][7]
+						reorderData[currentIndex][26] = manualInputsByAsin[manualInputAsin][8]
+						reorderData[currentIndex][27] = manualInputsByAsin[manualInputAsin][9]
+						reorderData[currentIndex][28] = manualInputsByAsin[manualInputAsin][10]
+						reorderData[currentIndex][29] = manualInputsByAsin[manualInputAsin][11]
+						reorderData[currentIndex][30] = manualInputsByAsin[manualInputAsin][12]
+						reorderData[currentIndex][34] = manualInputsByAsin[manualInputAsin][13]
+						reorderData[currentIndex][35] = manualInputsByAsin[manualInputAsin][14]
+						reorderData[currentIndex][48] = manualInputsByAsin[manualInputAsin][15]
+						reorderData[currentIndex][69] = manualInputsByAsin[manualInputAsin][15]
+						reorderData[currentIndex][50] = manualInputsByAsin[manualInputAsin][16]
+						reorderData[currentIndex][71] = manualInputsByAsin[manualInputAsin][16]
+		console.log "Resolving reorder data"
+		reorderData.unshift(outputReorderColumns)
+		deferred.resolve(reorderData)
+	deferred.promise
 
 sortInventoryDataByAsin = (data) ->
 	nameColumn = data.shift()
@@ -393,6 +430,121 @@ sortInventoryDataByAsin = (data) ->
 
 removeFeeDataDuplicates = (data) ->
 	_.uniq(data, false, (row) -> row[2])
+
+parseAndStoreManualInputs = (file, req, res) ->
+	getFileWithLength(req, file)
+	.then (file) ->
+		workbook = xlsx.parse(file.data)
+		reorderSheet = workbook[0]
+		count = 0
+		manualInputsToUpdate = []
+		for row in reorderSheet.data
+			if count > 0
+				asin = row[1]
+				crenstoneSKU = row[38]
+				oredrocSKU = row[59]
+				removeFromRestockReport = row[12]
+				seasonalTags = row[23]
+				oemMfgPartNumber = row[24]
+				oemMfg = row[25]
+				vendorPartNumber = row[26]
+				itemDescription = row[27]
+				vendorName = row[28]
+				vendorPrice = row[29]
+				quantityNeededPerASIN = row[30]
+				closeoutRetailTag = row[34]
+				canOrderAgain = row[35]
+				estimatedShippingCost = row[48]
+				overheadRate = row[50]
+				manualInputsToUpdate.push([
+					asin
+					,crenstoneSKU
+					,oredrocSKU
+					,removeFromRestockReport
+					,seasonalTags
+					,oemMfgPartNumber
+					,oemMfg
+					,vendorPartNumber
+					,itemDescription
+					,vendorName
+					,vendorPrice
+					,quantityNeededPerASIN
+					,closeoutRetailTag
+					,canOrderAgain
+					,estimatedShippingCost
+					,overheadRate
+				])
+			++count
+		Q.all(_.map(manualInputsToUpdate, (row) -> upsertIntoDb(row)))
+    .then (result) ->
+    	res.redirect('/')
+    .fail (err) ->
+    	res.status(500).json(error: "Internal server error saving manual inputs")
+    	console.log(err.stack || err)
+
+upsertIntoDb = (inputRow) ->
+	inputRow = _.map(inputRow, (val) ->
+		if val != null and val != undefined and val.length > 0
+			"'" + val + "'"
+		else if val == ''
+			return "null"
+		else
+			val
+	)
+	inputRowValues = inputRow.join(",")
+
+	selectQuery = 'SELECT id FROM \"manual-inputs\" WHERE asin=' + inputRow[0] + ' and \"vendor-part-number\"'
+	if inputRow[7] == 'null'
+		selectQuery += ' IS NULL'
+	else
+		selectQuery += '=' + inputRow[7]
+	if inputRow[1] == 'null'
+		selectQuery += ' AND \"crenstone-sku\" IS NULL'
+	else
+		selectQuery += ' AND \"crenstone-sku\" = ' + inputRow[1]
+	if inputRow[2] == 'null'
+		selectQuery += ' AND \"oredroc-sku\" IS NULL'
+	else
+		selectQuery += ' AND \"oredroc-sku\" = ' + inputRow[2]
+	insertQuery = 'INSERT INTO \"manual-inputs\"(asin, \"crenstone-sku\", \"oredroc-sku\", \"remove-from-restock-report\", \"seasonal-tags\", \"oem-mfg-part-number\", \"oem-mfg\", \"vendor-part-number\", \"item-description\", \"vendor-name\", \"vendor-price\", \"quantity-needed-per-asin\", \"closeout-retail-tag\", \"can-order-again\", \"estimated-shipping-cost\", \"overhead-rate\") VALUES (' + inputRowValues + ')'
+	updateQuery = 'UPDATE \"manual-inputs\" SET asin=' + inputRow[0] +
+					', \"crenstone-sku\"=' + inputRow[1] +
+					', \"oredroc-sku\"=' + inputRow[2] +
+					', \"remove-from-restock-report\"=' + inputRow[3] +
+					', \"seasonal-tags\"=' + inputRow[4] +
+					', \"oem-mfg-part-number\"=' + inputRow[5] +
+					', \"oem-mfg\"=' + inputRow[6] +
+					', \"vendor-part-number\"=' + inputRow[7] +
+					', \"item-description\"=' + inputRow[8] +
+					', \"vendor-name\"=' + inputRow[9] +
+					', \"vendor-price\"=' + inputRow[10] +
+					', \"quantity-needed-per-asin\"=' + inputRow[11] +
+					', \"closeout-retail-tag\"=' + inputRow[12] +
+					', \"can-order-again\"=' + inputRow[13] +
+					', \"estimated-shipping-cost\"=' + inputRow[14] +
+					', \"overhead-rate\"=' + inputRow[15] +
+					' WHERE id = '
+
+	db.sequelize.query(selectQuery, { type: db.sequelize.QueryTypes.SELECT})
+	.then (manualInputs) ->
+		if manualInputs.length == 0
+			db.sequelize.query(insertQuery)
+		else
+			db.sequelize.query(updateQuery + manualInputs[0].id)
+	.then (res) ->
+		res
+
+getFileWithLength = (req, file) ->
+	if req.headers['file-length']
+		file.knownLength = req.headers['file-length']
+		return Q.resolve(file)
+	deferred = Q.defer()
+	toArray file.data, (err, arr) ->
+   		if err then deferred.reject(err)
+    	file.data = Buffer.concat(arr)
+    	file.knownLength = file.data.length
+    	deferred.resolve(file)
+	deferred.promise
 
 app.get('/ping', (req, res) ->
 	res.sendStatus(200)
@@ -512,7 +664,6 @@ else
 												reorderItems[uniqueKey]["oredroc"][key] = row[key]
 											rowData.push('Oredroc')
 											inventoryData.push(rowData)
-										#worksheets.push({name: "Oredroc Inventory Health", data: data})
 									if oredrocFeesResult.length > 0
 										for row in oredrocFeesResult
 											uniqueKey = row['asin']
@@ -526,7 +677,6 @@ else
 													rowData.push(row[key])
 												reorderItems[uniqueKey]["oredroc"][key] = row[key]
 											feeData.push(rowData)
-										#worksheets.push({name: "Oredroc FBA Fees", data: data})
 									if crenstoneInventoryResult.length > 0
 										for row in crenstoneInventoryResult
 											uniqueKey = row['asin']
@@ -545,7 +695,6 @@ else
 												reorderItems[uniqueKey]["crenstone"][key] = row[key]
 											rowData.push('Crenstone')
 											inventoryData.push(rowData)
-										#worksheets.push({name: "Crenstone Inventory Health", data: data})
 									if crenstoneFeesResult.length > 0
 										for row in crenstoneFeesResult
 											uniqueKey = row['asin']
@@ -562,18 +711,20 @@ else
 
 									inventoryData = sortInventoryDataByAsin(inventoryData)
 									feeData = removeFeeDataDuplicates(feeData)
-									reorderData = buildReorderData(reorderItems)
-									
-									worksheets.push({name: "Reorder File", data: reorderData})
-									worksheets.push({name: "From Amazon INV Health", data: inventoryData})
-									worksheets.push({name: "From Amazon Fee Preview", data: feeData})
+									#reorderData = buildReorderData(reorderItems)
+									Q.all([Q.fcall(() -> inventoryData), Q.fcall(() -> feeData), buildReorderData(reorderItems)])
+									.spread (inventoryData, feeData, reorderData) ->
+										console.log "Create the worksheets"
+										worksheets.push({name: "Reorder File", data: reorderData})
+										worksheets.push({name: "From Amazon INV Health", data: inventoryData})
+										worksheets.push({name: "From Amazon Fee Preview", data: feeData})
 
-									buffer = xlsx.build(worksheets)
+										buffer = xlsx.build(worksheets)
 
-									fileName = originalFormattedDate + "-reorder.xlsx"
-									res.type('xlsx')
-									res.setHeader('Content-disposition', 'attachment; filename=' + fileName)
-									res.send(buffer)
+										fileName = originalFormattedDate + "-reorder.xlsx"
+										res.type('xlsx')
+										res.setHeader('Content-disposition', 'attachment; filename=' + fileName)
+										res.send(buffer)
 	)
 
 	app.get('/signup', (req, res) ->
@@ -635,6 +786,38 @@ else
 				res.redirect('/')
 		else
 			res.redirect('/login')
+	)
+
+	app.post('/reports/upload', (req, res) ->
+		if !req.user
+			res.redirect('/')
+		else
+			busboy = new Busboy({
+				headers: req.headers, 
+				limits: {
+				  fileSize: 500 * 1024 * 1024 # 500 MB
+				}
+			})
+			busboy.on 'file', (fieldName, fileStream, fileName, encoding, mimetype) ->
+				if fieldName != "reorder"
+				  console.error "fieldName is not reorder. It's: " + fieldName
+				  return res.json(400, error: "Bad upload request. 'document' field not provided")
+				if !fileStream?
+				  console.error ""
+				  return res.json(400, error: "Bad upload request. 'document' field value is null")
+				file = {
+				  data: fileStream
+				  name: fileName
+				  encoding: encoding
+				  mimetype: mimetype
+				}
+				parseAndStoreManualInputs(file, req, res)
+			busboy.on 'error', (err) ->
+				bugsnag.notify("Error on document upload", err)
+				console.error("Error parsing multipart form data during document upload")
+				console.log(err.stack || err)
+				return res.json(500, error: "Internal server error uploading document for investor verification form with id #{req.params.id}")
+			req.pipe(busboy)
 	)
 
 app.listen(config.PORT)
