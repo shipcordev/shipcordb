@@ -35,3 +35,5 @@ module.exports.requestReports = ->
 		StartDate: fbaFeesThirtyDaysAgoTimestamp})])
 	.spread (fbaFeesData, inventoryHealthData) ->
 		console.log "Report Requests Complete"
+	.catch (err) ->
+		console.log err

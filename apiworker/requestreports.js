@@ -46,6 +46,8 @@
       })
     ]).spread(function(fbaFeesData, inventoryHealthData) {
       return console.log("Report Requests Complete");
+    })["catch"](function(err) {
+      return console.log(err);
     });
   };
 
