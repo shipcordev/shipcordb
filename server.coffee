@@ -94,11 +94,11 @@ outputReorderColumns = ["snapshot-date"
  ,"In Stock or OOS - Crenstone"
  ,"Inbound Crenstone"
  ,"Days OOS - Crenstone"
- ,"Last 30 days of sales when in stock - Crenstone"
+ ,"Last 30 days of sales when in stock - Crenstone" #16
  ,"In Stock or OOS - Oredroc"
  ,"Inbound Oredroc"
  ,"Days OOS - Oredroc"
- ,"Last 30 days of sales when in stock - Oredroc"
+ ,"Last 30 days of sales when in stock - Oredroc" #20
  ,"Total Stock - Both Accounts"
  ,"Total Sales both accounts - 30 days"
  ,"Seasonal Tags"
@@ -123,11 +123,11 @@ outputReorderColumns = ["snapshot-date"
  ,"Below Current Price?"
  ,"brand"
  ,"your-price"
- ,"sales-price"
+ ,"sales-price" #45
  ,"estimated-fee-total"
  ,"estimated-future-fee (Current Selling on Amazon + Future Fulfillment fees)"
  ,"estimated-shipping-cost"
- ,"total-inventory-cost"
+ ,"total-inventory-cost" #49
  ,"overhead-rate"
  ,"profit"
  ,"future-profit"
@@ -148,7 +148,7 @@ outputReorderColumns = ["snapshot-date"
  ,"estimated-fee-total"
  ,"estimated-future-fee (Current Selling on Amazon + Future Fulfillment fees)"
  ,"estimated-shipping-cost"
- ,"total-inventory-cost"
+ ,"total-inventory-cost" #70
  ,"overhead-rate"
  ,"profit"
  ,"future-profit"
@@ -294,7 +294,7 @@ buildReorderData = (reorderItems) ->
 			 ,seasonalTags
 			 ,oemMfgPartNumber
 			 ,oemMfg
-			 ,vendorPartNumber#26
+			 ,vendorPartNumber
 			 ,itemDescription
 			 ,vendorName
 			 ,vendorPrice
@@ -306,7 +306,7 @@ buildReorderData = (reorderItems) ->
 			 ,canOrderAgain
 			 ,sellingInAccounts
 			 ,hasStockInAccounts
-			 ,crenstoneSKU#38
+			 ,crenstoneSKU
 			 ,crenstoneFNSKU
 			 ,ourCurrentPriceInventoryCrenstone
 			 ,lowestPrimePriceCrenstone
@@ -327,7 +327,7 @@ buildReorderData = (reorderItems) ->
 			 ,crenstoneUnitsShippedLast90Days
 			 ,crenstoneUnitsShippedLast180Days
 			 ,crenstoneUnitsShippedLast365Days
-			 ,oredrocSKU#59
+			 ,oredrocSKU
 			 ,oredrocFNSKU
 			 ,ourCurrentPriceInventoryOredroc
 			 ,lowestPrimePriceOredroc
@@ -353,22 +353,16 @@ buildReorderData = (reorderItems) ->
 		asinKeys.add(asin)
 	#TODO: get all manual input data for each asin, meaning compile all unique ASINs when building
 	#the rows, then query the database on all of those asins in the manual-input table
-	console.log "Okay, let's get the asin key query..."
 	asinKeyArray = Array.from(asinKeys)
 	#TODO: Set Iterator to array and THEN join
 	asinKeyQuery = '(' + _.map(asinKeyArray, (asin) -> '\'' + asin + '\'').join(',') + ')'
 	selectQuery = 'SELECT * FROM \"manual-inputs\" WHERE asin IN ' + asinKeyQuery 
-	console.log "Alright let's Q all"
 	deferred = Q.defer()
 	db.sequelize.query(selectQuery, { type: db.sequelize.QueryTypes.SELECT})
 	.then (manualInputs) ->
-		console.log "Reorder and manual inputs..."
 		if manualInputs.length > 0
-			console.log "Good good"
 			reorderDataByAsin = _.groupBy(reorderData, (row) -> row[1])
-			#console.log reorderDataByAsin
 			manualInputsByAsin = _.groupBy(manualInputs, (manualInput) -> manualInput['asin'])
-			console.log manualInputsByAsin['B01LGECQ96']
 			for manualInputAsin in Object.keys(manualInputsByAsin)
 				#find reorderData that matches crenstoneSKU, oredrocSKU, asin, and vendorPartNumber
 				#but only if the length of reorderData matches manual input
@@ -391,31 +385,60 @@ buildReorderData = (reorderItems) ->
 							lastReorderIndex++
 							numDuplicates--
 
+					manualInputIndex = 0
 					while reorderIndices.length > 0	
 						currentIndex = reorderIndices.shift()
-						console.log currentIndex
-						console.log reorderData[currentIndex]
-						reorderData[currentIndex][38] = manualInputsByAsin[manualInputAsin][2]
-						reorderData[currentIndex][59] = manualInputsByAsin[manualInputAsin][3]
-						reorderData[currentIndex][12] = manualInputsByAsin[manualInputAsin][4]
-						reorderData[currentIndex][23] = manualInputsByAsin[manualInputAsin][5]
-						reorderData[currentIndex][24] = manualInputsByAsin[manualInputAsin][6]
-						reorderData[currentIndex][25] = manualInputsByAsin[manualInputAsin][7]
-						reorderData[currentIndex][26] = manualInputsByAsin[manualInputAsin][8]
-						reorderData[currentIndex][27] = manualInputsByAsin[manualInputAsin][9]
-						reorderData[currentIndex][28] = manualInputsByAsin[manualInputAsin][10]
-						reorderData[currentIndex][29] = manualInputsByAsin[manualInputAsin][11]
-						reorderData[currentIndex][30] = manualInputsByAsin[manualInputAsin][12]
-						reorderData[currentIndex][34] = manualInputsByAsin[manualInputAsin][13]
-						reorderData[currentIndex][35] = manualInputsByAsin[manualInputAsin][14]
-						reorderData[currentIndex][48] = manualInputsByAsin[manualInputAsin][15]
-						reorderData[currentIndex][69] = manualInputsByAsin[manualInputAsin][15]
-						reorderData[currentIndex][50] = manualInputsByAsin[manualInputAsin][16]
-						reorderData[currentIndex][71] = manualInputsByAsin[manualInputAsin][16]
-		console.log "Resolving reorder data"
+						reorderData[currentIndex][12] = manualInputsByAsin[manualInputAsin][manualInputIndex]['remove-from-restock-report']
+						reorderData[currentIndex][23] = manualInputsByAsin[manualInputAsin][manualInputIndex]['seasonal-tags']
+						reorderData[currentIndex][24] = manualInputsByAsin[manualInputAsin][manualInputIndex]['oem-mfg-part-number']
+						reorderData[currentIndex][25] = manualInputsByAsin[manualInputAsin][manualInputIndex]['oem-mfg']
+						reorderData[currentIndex][26] = manualInputsByAsin[manualInputAsin][manualInputIndex]['vendor-part-number']
+						reorderData[currentIndex][27] = manualInputsByAsin[manualInputAsin][manualInputIndex]['item-description']
+						reorderData[currentIndex][28] = manualInputsByAsin[manualInputAsin][manualInputIndex]['vendor-name']
+						reorderData[currentIndex][29] = manualInputsByAsin[manualInputAsin][manualInputIndex]['vendor-price']
+						reorderData[currentIndex][30] = manualInputsByAsin[manualInputAsin][manualInputIndex]['quantity-needed-per-asin']
+						reorderData[currentIndex][34] = manualInputsByAsin[manualInputAsin][manualInputIndex]['closeout-retail-tag']
+						reorderData[currentIndex][35] = manualInputsByAsin[manualInputAsin][manualInputIndex]['can-order-again']
+						reorderData[currentIndex][48] = manualInputsByAsin[manualInputAsin][manualInputIndex]['estimated-shipping-cost']
+						reorderData[currentIndex][69] = manualInputsByAsin[manualInputAsin][manualInputIndex]['estimated-shipping-cost']
+						reorderData[currentIndex][50] = manualInputsByAsin[manualInputAsin][manualInputIndex]['overhead-rate']
+						reorderData[currentIndex][71] = manualInputsByAsin[manualInputAsin][manualInputIndex]['overhead-rate']
+						manualInputIndex++
+
+
+		calculateCalculatedOutputs(reorderData)
 		reorderData.unshift(outputReorderColumns)
 		deferred.resolve(reorderData)
 	deferred.promise
+
+calculateCalculatedOutputs = (data) ->
+	for row in data
+		totalStock = row[13] + row[14] + row[17] + row[18]
+		totalSales = row[16] + row[20]
+		totalPriceOfASIN = row[29] * row[30]
+		for row2 in data
+			if row[1] == row2[1] and row[26] != row2[26]
+				totalPriceOfASIN += row2[29] * row[30]
+		quantityNeeded3x = totalSales * row[30] * 3
+		quantityNeeded6x = totalSales * row[30] * 6
+		overheadRate = totalPriceOfASIN / 5
+		estimatedShippingCost = if row[48] != null then row[48] else 0
+		profit = row[45] - totalPriceOfASIN - overheadRate - estimatedShippingCost - row[46]
+		futureProfit = row[45] - totalPriceOfASIN - overheadRate - estimatedShippingCost - row[47]
+
+		row[21] = totalStock
+		row[22] = totalSales
+		row[31] = "$" + totalPriceOfASIN.toFixed(2)
+		row[32] = quantityNeeded3x
+		row[33] = quantityNeeded6x
+		row[49] = "$" + totalPriceOfASIN.toFixed(2)
+		row[70] = "$" + totalPriceOfASIN.toFixed(2)
+		row[50] = overheadRate
+		row[71] = overheadRate
+		row[51] = "$" + profit.toFixed(2)
+		row[72] = "$" + profit.toFixed(2)
+		row[52] = "$" + futureProfit.toFixed(2)
+		row[73] = "$" + futureProfit.toFixed(2)
 
 sortInventoryDataByAsin = (data) ->
 	nameColumn = data.shift()
@@ -711,10 +734,8 @@ else
 
 									inventoryData = sortInventoryDataByAsin(inventoryData)
 									feeData = removeFeeDataDuplicates(feeData)
-									#reorderData = buildReorderData(reorderItems)
 									Q.all([Q.fcall(() -> inventoryData), Q.fcall(() -> feeData), buildReorderData(reorderItems)])
 									.spread (inventoryData, feeData, reorderData) ->
-										console.log "Create the worksheets"
 										worksheets.push({name: "Reorder File", data: reorderData})
 										worksheets.push({name: "From Amazon INV Health", data: inventoryData})
 										worksheets.push({name: "From Amazon Fee Preview", data: feeData})
