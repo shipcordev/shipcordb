@@ -117,113 +117,108 @@ getReportList = (reportTypes, delay) ->
 					
 				if Object.keys(reportIdAndTimestampsByType).length == 2
 					break
-		if Object.keys(reportIdAndTimestampsByType).length < 2
-			Q.delay(delay)
-			.then () ->
-				getReportList(reportTypes, delay * 2)
-		else
-			Q.allSettled(_.map(Object.keys(reportIdAndTimestampsByType), (reportType) ->
-				mws.Reports.GetReport({ReportId: reportIdAndTimestampsByType[reportType].id})
-				.then (report) ->
-					deferred = Q.defer()
-					date = new Date(reportIdAndTimestampsByType[reportType].timestamp)
-					formattedDate = date.getFullYear()+'-' + (date.getMonth()+1) + '-'+date.getDate()
-					queryParams = []
-					if reportType == '_GET_FBA_FULFILLMENT_INVENTORY_HEALTH_DATA_' and mostRecentSnapshotByType['inventory-health'] == formattedDate
-						return Q('')
-					else if reportType == '_GET_FBA_ESTIMATED_FBA_FEES_TXT_DATA_' and mostRecentSnapshotByType['fba-fees'] == formattedDate
-						return Q('')
-					else
-						csv.fromString(report.result, { headers: true, delimiter: '\t', quote: null})
-						.on("data", (data) ->
-							insertPlaceholders = new Array()
-							count = 0
-							insertValues = new Array()
-							tableToInsert = "inventory-health"
-							insertValues.push(config.SELLER_ACCOUNT)
+		Q.allSettled(_.map(Object.keys(reportIdAndTimestampsByType), (reportType) ->
+			mws.Reports.GetReport({ReportId: reportIdAndTimestampsByType[reportType].id})
+			.then (report) ->
+				deferred = Q.defer()
+				date = new Date(reportIdAndTimestampsByType[reportType].timestamp)
+				formattedDate = date.getFullYear()+'-' + (date.getMonth()+1) + '-'+date.getDate()
+				queryParams = []
+				if reportType == '_GET_FBA_FULFILLMENT_INVENTORY_HEALTH_DATA_' and mostRecentSnapshotByType['inventory-health'] == formattedDate
+					return Q('')
+				else if reportType == '_GET_FBA_ESTIMATED_FBA_FEES_TXT_DATA_' and mostRecentSnapshotByType['fba-fees'] == formattedDate
+					return Q('')
+				else
+					csv.fromString(report.result, { headers: true, delimiter: '\t', quote: null})
+					.on("data", (data) ->
+						insertPlaceholders = new Array()
+						count = 0
+						insertValues = new Array()
+						tableToInsert = "inventory-health"
+						insertValues.push(config.SELLER_ACCOUNT)
+						insertPlaceholders.push("$" + ++count)
+						if !_.contains(Object.keys(data), "snapshot-date")
+							tableToInsert = "fba-fees"
+							insertValues.push(formattedDate)
 							insertPlaceholders.push("$" + ++count)
-							if !_.contains(Object.keys(data), "snapshot-date")
-								tableToInsert = "fba-fees"
+						for key in Object.keys(data)
+							if key == "snapshot-date"
 								insertValues.push(formattedDate)
-								insertPlaceholders.push("$" + ++count)
-							for key in Object.keys(data)
-								if key == "snapshot-date"
-									insertValues.push(formattedDate)
-								else if key == "is-hazmat"
-									if data[key] == 'N'
-										insertValues.push(false)
-									else
-										insertValues.push(true)
-								else if data[key] == null || data[key] == undefined || data[key].trim() == '' || data[key].trim() == '--'
-									insertValues.push(null)
+							else if key == "is-hazmat"
+								if data[key] == 'N'
+									insertValues.push(false)
 								else
-									insertValues.push(data[key])
-								insertPlaceholders.push("$" + ++count)
-							queryString = ''
-							if tableToInsert == "fba-fees"
-								queryString = 'INSERT INTO "' + tableToInsert + '"(' + fbaFeesColumns.join(',') + ') VALUES (' + insertPlaceholders.join(',') + ') RETURNING id'
+									insertValues.push(true)
+							else if data[key] == null || data[key] == undefined || data[key].trim() == '' || data[key].trim() == '--'
+								insertValues.push(null)
 							else
-								queryString = 'INSERT INTO "' + tableToInsert + '"(' + inventoryHealthColumns.join(',') + ') VALUES (' + insertPlaceholders.join(',') + ') RETURNING id'
-							queryParams.push({
-								tableName: tableToInsert
-								queryString: queryString
-								insertValues: insertValues
-								date: formattedDate
-							})
-						)
-						.on("error", (data) -> 
-							console.log data
-							deferred.reject(new Error(data))
-						)
-						.on("end", () ->
-							deferred.resolve(queryParams)
-						)
-						deferred.promise
-				.then (queries) ->
-					Q.allSettled(_.map(_.filter(queries, (query) -> query != ''), (query) ->
-						deferred = Q.defer()
-						client.query(
-							query.queryString, query.insertValues
-						, (err, result) ->
-							if err
-								console.log err
-								deferred.reject(new Error(err))
-							else
-								deferred.resolve({
-									tableName: query.tableName
-									id: result.rows[0].id
-									date: query.date
-								})
-						)
-						deferred.promise
-					))
-				)).then (results) ->
-					deferred = Q.defer()
-					numReportsCompleted = 0
-					for result in results
-						if result.state == "fulfilled"
-							console.log result.value
-							if result.value.length > 0
-								firstResult = result.value[0]
-								firstResultValue = firstResult.value
-								client.query('INSERT INTO \"report-snapshot-dates\"(seller, type, \"snapshot-date\") VALUES (\'' + config.SELLER_ACCOUNT + '\', \'' + firstResultValue.tableName + '\',\'' + firstResultValue.date + '\')')
-									.then (err, result) ->
-										numReportsCompleted++
-										if numReportsCompleted == results.length
-											deferred.resolve({
-												numReports: numReportsCompleted
-											})
-							else
-								numReportsCompleted++
-								if numReportsCompleted == results.length
-									deferred.resolve({
-										numReports: numReportsCompleted
-									})
+								insertValues.push(data[key])
+							insertPlaceholders.push("$" + ++count)
+						queryString = ''
+						if tableToInsert == "fba-fees"
+							queryString = 'INSERT INTO "' + tableToInsert + '"(' + fbaFeesColumns.join(',') + ') VALUES (' + insertPlaceholders.join(',') + ') RETURNING id'
+						else
+							queryString = 'INSERT INTO "' + tableToInsert + '"(' + inventoryHealthColumns.join(',') + ') VALUES (' + insertPlaceholders.join(',') + ') RETURNING id'
+						queryParams.push({
+							tableName: tableToInsert
+							queryString: queryString
+							insertValues: insertValues
+							date: formattedDate
+						})
+					)
+					.on("error", (data) -> 
+						console.log data
+						deferred.reject(new Error(data))
+					)
+					.on("end", () ->
+						deferred.resolve(queryParams)
+					)
 					deferred.promise
-				.then (result) ->
-					console.log "Reports completed: " + result.numReports		
-					client.end()
-			.done()
+			.then (queries) ->
+				Q.allSettled(_.map(_.filter(queries, (query) -> query != ''), (query) ->
+					deferred = Q.defer()
+					client.query(
+						query.queryString, query.insertValues
+					, (err, result) ->
+						if err
+							console.log err
+							deferred.reject(new Error(err))
+						else
+							deferred.resolve({
+								tableName: query.tableName
+								id: result.rows[0].id
+								date: query.date
+							})
+					)
+					deferred.promise
+				))
+			)).then (results) ->
+				deferred = Q.defer()
+				numReportsCompleted = 0
+				for result in results
+					if result.state == "fulfilled"
+						console.log result.value
+						if result.value.length > 0
+							firstResult = result.value[0]
+							firstResultValue = firstResult.value
+							client.query('INSERT INTO \"report-snapshot-dates\"(seller, type, \"snapshot-date\") VALUES (\'' + config.SELLER_ACCOUNT + '\', \'' + firstResultValue.tableName + '\',\'' + firstResultValue.date + '\')')
+								.then (err, result) ->
+									numReportsCompleted++
+									if numReportsCompleted == results.length
+										deferred.resolve({
+											numReports: numReportsCompleted
+										})
+						else
+							numReportsCompleted++
+							if numReportsCompleted == results.length
+								deferred.resolve({
+									numReports: numReportsCompleted
+								})
+				deferred.promise
+			.then (result) ->
+				console.log "Reports completed: " + result.numReports		
+				client.end()
+		.done()
 
 ###
 	First, request both reports, then get report request list, then get each
