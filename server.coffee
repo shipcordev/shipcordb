@@ -413,26 +413,26 @@ buildReorderData = (reorderItems) ->
 
 calculateCalculatedOutputs = (data) ->
 	for row in data
-		totalStock = row[13] + row[14] + row[17] + row[18]
-		totalSales = row[16] + row[20]
-		totalPriceOfASIN = row[29] * row[30]
+		totalStock = Number(row[13]) + Number(row[14]) + Number(row[17]) + Number(row[18])
+		totalSales = Number(row[16]) + Number(row[20])
+		totalPriceOfASIN = Number(row[29]) * Number(row[30])
 		for row2 in data
 			if row[1] == row2[1] and row[26] != row2[26]
-				totalPriceOfASIN += row2[29] * row[30]
-		quantityNeeded3x = totalSales * row[30] * 3
-		quantityNeeded6x = totalSales * row[30] * 6
+				totalPriceOfASIN += Number(row2[29]) * Number(row[30])
+		quantityNeeded3x = totalSales * Number(row[30]) * 3
+		quantityNeeded6x = totalSales * Number(row[30]) * 6
 		overheadRate = totalPriceOfASIN / 5
-		estimatedShippingCost = if row[48] != null then row[48] else 0
-		profit = row[45] - totalPriceOfASIN - overheadRate - estimatedShippingCost - row[46]
-		futureProfit = row[45] - totalPriceOfASIN - overheadRate - estimatedShippingCost - row[47]
+		estimatedShippingCost = if row[48] != null then Number(row[48]) else 0
+		profit = Number(row[45]) - totalPriceOfASIN - overheadRate - estimatedShippingCost - Number(row[46])
+		futureProfit = Number(row[45]) - totalPriceOfASIN - overheadRate - estimatedShippingCost - Number(row[47])
 
 		row[21] = totalStock
 		row[22] = totalSales
-		row[31] = "$" + totalPriceOfASIN.toFixed(2)
-		row[32] = quantityNeeded3x
-		row[33] = quantityNeeded6x
-		row[49] = "$" + totalPriceOfASIN.toFixed(2)
-		row[70] = "$" + totalPriceOfASIN.toFixed(2)
+		row[31] = totalPriceOfASIN.toFixed(2)
+		row[32] = if quantityNeeded3x != 0 then quantityNeeded3x else null
+		row[33] = if quantityNeeded6x != 0 then quantityNeeded6x else null
+		row[49] = totalPriceOfASIN.toFixed(2)
+		row[70] = totalPriceOfASIN.toFixed(2)
 		row[50] = overheadRate
 		row[71] = overheadRate
 		row[51] = "$" + profit.toFixed(2)
