@@ -273,81 +273,81 @@ buildReorderData = (reorderItems) ->
 			 ,productName
 			 ,salesRank
 			 ,productGroup
-			 ,totalUnitsShippedLast24Hours
-			 ,totalUnitsShippedLast7Days
-			 ,totalUnitsShippedLast30Days
-			 ,totalUnitsShippedLast90Days
-			 ,totalUnitsShippedLast180Days
-			 ,totalUnitsShippedLast365Days
+			 ,Number(totalUnitsShippedLast24Hours)
+			 ,Number(totalUnitsShippedLast7Days)
+			 ,Number(totalUnitsShippedLast30Days)
+			 ,Number(totalUnitsShippedLast90Days)
+			 ,Number(totalUnitsShippedLast180Days)
+			 ,Number(totalUnitsShippedLast365Days)
 			 ,numAfnNewSellers
 			 ,removeFromRestockReport
-			 ,inStockOrOOSCrenstone
-			 ,inboundCrenstone
-			 ,daysOOSCrenstone
-			 ,last30DaysOfSalesWhenInStockCrenstone
-			 ,inStockOrOOSOredroc
-			 ,inboundOredroc
-			 ,daysOOSOredroc
-			 ,last30DaysOfSalesWhenInStockOredroc
-			 ,totalStockBothAccounts
-			 ,totalSalesBothAccounts30Days
+			 ,Number(inStockOrOOSCrenstone)
+			 ,Number(inboundCrenstone)
+			 ,Number(daysOOSCrenstone)
+			 ,Number(last30DaysOfSalesWhenInStockCrenstone)
+			 ,Number(inStockOrOOSOredroc)
+			 ,Number(inboundOredroc)
+			 ,Number(daysOOSOredroc)
+			 ,Number(last30DaysOfSalesWhenInStockOredroc)
+			 ,Number(totalStockBothAccounts)
+			 ,Number(totalSalesBothAccounts30Days)
 			 ,seasonalTags
 			 ,oemMfgPartNumber
 			 ,oemMfg
 			 ,vendorPartNumber
 			 ,itemDescription
 			 ,vendorName
-			 ,vendorPrice
-			 ,quantityNeededPerASIN
-			 ,totalPricePerASIN
-			 ,quantityNeededForRestockOrder3xOn30DaySales
-			 ,quantityNeededForRestockOrder6xOn30DaySales
+			 ,Number(vendorPrice)
+			 ,Number(quantityNeededPerASIN)
+			 ,Number(totalPricePerASIN)
+			 ,Number(quantityNeededForRestockOrder3xOn30DaySales)
+			 ,Number(quantityNeededForRestockOrder6xOn30DaySales)
 			 ,closeoutRetailTag
 			 ,canOrderAgain
 			 ,sellingInAccounts
 			 ,hasStockInAccounts
 			 ,crenstoneSKU
 			 ,crenstoneFNSKU
-			 ,ourCurrentPriceInventoryCrenstone
-			 ,lowestPrimePriceCrenstone
-			 ,belowCurrentPriceCrenstone
+			 ,Number(ourCurrentPriceInventoryCrenstone)
+			 ,Number(lowestPrimePriceCrenstone)
+			 ,Number(belowCurrentPriceCrenstone)
 			 ,brand
-			 ,yourPrice
-			 ,salesPrice
-			 ,estimatedFeeTotal
-			 ,estimatedFutureFee
-			 ,estimatedShippingCost
-			 ,totalInventoryCost
-			 ,overheadRate
-			 ,profit
-			 ,futureProfit
-			 ,crenstoneUnitsShippedLast24Hours
-			 ,crenstoneUnitsShippedLast7Days
-			 ,crenstoneUnitsShippedLast30Days
-			 ,crenstoneUnitsShippedLast90Days
-			 ,crenstoneUnitsShippedLast180Days
-			 ,crenstoneUnitsShippedLast365Days
+			 ,Number(yourPrice)
+			 ,Number(salesPrice)
+			 ,Number(estimatedFeeTotal)
+			 ,Number(estimatedFutureFee)
+			 ,Number(estimatedShippingCost)
+			 ,Number(totalInventoryCost)
+			 ,Number(overheadRate)
+			 ,Number(profit)
+			 ,Number(futureProfit)
+			 ,Number(crenstoneUnitsShippedLast24Hours)
+			 ,Number(crenstoneUnitsShippedLast7Days)
+			 ,Number(crenstoneUnitsShippedLast30Days)
+			 ,Number(crenstoneUnitsShippedLast90Days)
+			 ,Number(crenstoneUnitsShippedLast180Days)
+			 ,Number(crenstoneUnitsShippedLast365Days)
 			 ,oredrocSKU
 			 ,oredrocFNSKU
-			 ,ourCurrentPriceInventoryOredroc
-			 ,lowestPrimePriceOredroc
-			 ,belowCurrentPriceOredroc
+			 ,Number(ourCurrentPriceInventoryOredroc)
+			 ,Number(lowestPrimePriceOredroc)
+			 ,Number(belowCurrentPriceOredroc)
 			 ,brand
-			 ,yourPrice
-			 ,salesPrice
-			 ,estimatedFeeTotal
-			 ,estimatedFutureFee
-			 ,estimatedShippingCost
-			 ,totalInventoryCost
-			 ,overheadRate
-			 ,profit
-			 ,futureProfit
-			 ,oredrocUnitsShippedLast24Hours
-			 ,oredrocUnitsShippedLast7Days
-			 ,oredrocUnitsShippedLast30Days
-			 ,oredrocUnitsShippedLast90Days
-			 ,oredrocUnitsShippedLast180Days
-			 ,oredrocUnitsShippedLast365Days
+			 ,Number(yourPrice)
+			 ,Number(salesPrice)
+			 ,Number(estimatedFeeTotal)
+			 ,Number(estimatedFutureFee)
+			 ,Number(estimatedShippingCost)
+			 ,Number(totalInventoryCost)
+			 ,Number(overheadRate)
+			 ,Number(profit)
+			 ,Number(futureProfit)
+			 ,Number(oredrocUnitsShippedLast24Hours)
+			 ,Number(oredrocUnitsShippedLast7Days)
+			 ,Number(oredrocUnitsShippedLast30Days)
+			 ,Number(oredrocUnitsShippedLast90Days)
+			 ,Number(oredrocUnitsShippedLast180Days)
+			 ,Number(oredrocUnitsShippedLast365Days)
 		]
 		reorderData.push(reorderRow)
 		asinKeys.add(asin)
