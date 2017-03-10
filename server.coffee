@@ -428,11 +428,11 @@ calculateCalculatedOutputs = (data) ->
 
 		row[21] = totalStock
 		row[22] = totalSales
-		row[31] = totalPriceOfASIN.toFixed(2)
+		row[31] = if totalPriceOfASIN != 0 then totalPriceOfASIN.toFixed(2) else null
 		row[32] = if quantityNeeded3x != 0 then quantityNeeded3x else null
 		row[33] = if quantityNeeded6x != 0 then quantityNeeded6x else null
-		row[49] = totalPriceOfASIN.toFixed(2)
-		row[70] = totalPriceOfASIN.toFixed(2)
+		row[49] = if totalPriceOfASIN != 0 then totalPriceOfASIN.toFixed(2) else null
+		row[70] = if totalPriceOfASIN != 0 then totalPriceOfASIN.toFixed(2) else null
 		row[50] = overheadRate
 		row[71] = overheadRate
 		row[51] = "$" + profit.toFixed(2)
