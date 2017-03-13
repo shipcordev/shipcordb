@@ -220,8 +220,8 @@ buildReorderData = (reorderItems) ->
 		vendorPrice = Number(reorderItems[key]['crenstone']['vendor-price']) || Number(reorderItems[key]['oredroc']['vendor-price']) || null
 		quantityNeededPerASIN = Number(reorderItems[key]['crenstone']['quantity-needed-per-asin']) || Number(reorderItems[key]['oredroc']['quantity-needed-per-asin']) || null
 		totalPricePerASIN = null
-		quantityNeededForRestockOrder3xOn30DaySales = 3 * (Number(reorderItems[key]['crenstone']['quantity-needed-per-asin'] || reorderItems[key]['oredroc']['quantity-needed-per-asin'] || 0) - Number(totalStockBothAccounts))
-		quantityNeededForRestockOrder6xOn30DaySales = 6 * (Number(reorderItems[key]['crenstone']['quantity-needed-per-asin'] || reorderItems[key]['oredroc']['quantity-needed-per-asin'] || 0) - Number(totalStockBothAccounts))
+		quantityNeededForRestockOrder3xOn30DaySales = 3 * Number(reorderItems[key]['crenstone']['quantity-needed-per-asin'] || reorderItems[key]['oredroc']['quantity-needed-per-asin'] || 0) - totalStockBothAccounts
+		quantityNeededForRestockOrder6xOn30DaySales = 6 * Number(reorderItems[key]['crenstone']['quantity-needed-per-asin'] || reorderItems[key]['oredroc']['quantity-needed-per-asin'] || 0) - totalStockBothAccounts
 		closeoutRetailTag = reorderItems[key]['crenstone']['closeout-retail-tag'] || reorderItems[key]['oredroc']['closeout-retail-tag'] || ''
 		canOrderAgain = reorderItems[key]['crenstone']['can-order-again'] || reorderItems[key]['oredroc']['can-order-again'] || ''
 		sellingInAccounts = ''
@@ -236,36 +236,36 @@ buildReorderData = (reorderItems) ->
 			hasStockInAccounts += 'Oredroc'
 		crenstoneSKU = reorderItems[key]['crenstone']['sku'] || ''
 		crenstoneFNSKU = reorderItems[key]['crenstone']['fnsku'] || ''
-		ourCurrentPriceInventoryCrenstone = Number(reorderItems[key]['crenstone']['your-price']) || 0
-		lowestPrimePriceCrenstone = Number(reorderItems[key]['crenstone']['lowest-afn-new-price']) || 0
-		belowCurrentPriceCrenstone = Number(lowestPrimePriceCrenstone) - Number(ourCurrentPriceInventoryCrenstone)
+		ourCurrentPriceInventoryCrenstone = parseFloat(reorderItems[key]['crenstone']['your-price'] || 0)
+		lowestPrimePriceCrenstone = parseFloat(reorderItems[key]['crenstone']['lowest-afn-new-price'] || 0)
+		belowCurrentPriceCrenstone = lowestPrimePriceCrenstone - ourCurrentPriceInventoryCrenstone
 		brand = reorderItems[key]['crenstone']['brand'] || reorderItems[key]['oredroc']['brand'] || ''
-		yourPrice = Number(reorderItems[key]['crenstone']['your-price']) || Number(reorderItems[key]['oredroc']['your-price']) || null
-		salesPrice = Number(reorderItems[key]['crenstone']['sales-price']) || Number(reorderItems[key]['oredroc']['sales-price']) || null
-		estimatedFeeTotal = Number(reorderItems[key]['crenstone']['estimated-fee-total']) || Number(reorderItems[key]['oredroc']['estimated-fee-total']) || null
-		estimatedFutureFee = lowestPrimePriceCrenstone + (Number(reorderItems[key]['crenstone']['expected-future-fulfillment-fee-per-unit']) || Number(reorderItems[key]['oredroc']['expected-future-fulfillment-fee-per-unit']) || 0)
-		estimatedShippingCost = Number(reorderItems[key]['crenstone']['estimated-shipping-cost']) || Number(reorderItems[key]['oredroc']['estimated-shipping-cost']) || null
+		yourPrice = parseFloat(reorderItems[key]['crenstone']['your-price']) || parseFloat(reorderItems[key]['oredroc']['your-price']) || null
+		salesPrice = parseFloat(reorderItems[key]['crenstone']['sales-price']) || parseFloat(reorderItems[key]['oredroc']['sales-price']) || null
+		estimatedFeeTotal = parseFloat(reorderItems[key]['crenstone']['estimated-fee-total']) || parseFloat(reorderItems[key]['oredroc']['estimated-fee-total']) || null
+		estimatedFutureFee = lowestPrimePriceCrenstone + parseFloat(reorderItems[key]['crenstone']['expected-future-fulfillment-fee-per-unit'] || reorderItems[key]['oredroc']['expected-future-fulfillment-fee-per-unit'] || 0)
+		estimatedShippingCost = parseFloat(reorderItems[key]['crenstone']['estimated-shipping-cost'] || reorderItems[key]['oredroc']['estimated-shipping-cost']) || null
 		totalInventoryCost = ''
 		overheadRate = ''
 		profit = ''
 		futureProfit = ''
-		crenstoneUnitsShippedLast24Hours = Number(reorderItems[key]['crenstone']['units-shipped-last-24-hrs']) || 0
-		crenstoneUnitsShippedLast7Days = Number(reorderItems[key]['crenstone']['units-shipped-last-7-days']) || 0
-		crenstoneUnitsShippedLast30Days = Number(reorderItems[key]['crenstone']['units-shipped-last-30-days']) || 0
-		crenstoneUnitsShippedLast90Days = Number(reorderItems[key]['crenstone']['units-shipped-last-90-days']) || 0
-		crenstoneUnitsShippedLast180Days = Number(reorderItems[key]['crenstone']['units-shipped-last-180-days']) || 0
-		crenstoneUnitsShippedLast365Days = Number(reorderItems[key]['crenstone']['units-shipped-last-365-days']) || 0
+		crenstoneUnitsShippedLast24Hours = Number(reorderItems[key]['crenstone']['units-shipped-last-24-hrs'] || 0)
+		crenstoneUnitsShippedLast7Days = Number(reorderItems[key]['crenstone']['units-shipped-last-7-days'] || 0)
+		crenstoneUnitsShippedLast30Days = Number(reorderItems[key]['crenstone']['units-shipped-last-30-days'] || 0)
+		crenstoneUnitsShippedLast90Days = Number(reorderItems[key]['crenstone']['units-shipped-last-90-days'] || 0)
+		crenstoneUnitsShippedLast180Days = Number(reorderItems[key]['crenstone']['units-shipped-last-180-days'] || 0)
+		crenstoneUnitsShippedLast365Days = Number(reorderItems[key]['crenstone']['units-shipped-last-365-days'] || 0)
 		oredrocSKU = reorderItems[key]['oredroc']['sku'] || ''
 		oredrocFNSKU = reorderItems[key]['oredroc']['fnsku'] || ''
-		ourCurrentPriceInventoryOredroc = Number(reorderItems[key]['oredroc']['your-price']) || 0
-		lowestPrimePriceOredroc = Number(reorderItems[key]['oredroc']['lowest-afn-new-price']) || 0
-		belowCurrentPriceOredroc = Number(lowestPrimePriceOredroc) - Number(ourCurrentPriceInventoryOredroc)
-		oredrocUnitsShippedLast24Hours = Number(reorderItems[key]['oredroc']['units-shipped-last-24-hrs']) || 0
-		oredrocUnitsShippedLast7Days = Number(reorderItems[key]['oredroc']['units-shipped-last-7-days']) || 0
-		oredrocUnitsShippedLast30Days = Number(reorderItems[key]['oredroc']['units-shipped-last-30-days']) || 0
-		oredrocUnitsShippedLast90Days = Number(reorderItems[key]['oredroc']['units-shipped-last-90-days']) || 0
-		oredrocUnitsShippedLast180Days = Number(reorderItems[key]['oredroc']['units-shipped-last-180-days']) || 0
-		oredrocUnitsShippedLast365Days = Number(reorderItems[key]['oredroc']['units-shipped-last-365-days']) || 0
+		ourCurrentPriceInventoryOredroc = parseFloat(reorderItems[key]['oredroc']['your-price'] || 0)
+		lowestPrimePriceOredroc = parseFloat(reorderItems[key]['oredroc']['lowest-afn-new-price'] || 0)
+		belowCurrentPriceOredroc = lowestPrimePriceOredroc - ourCurrentPriceInventoryOredroc
+		oredrocUnitsShippedLast24Hours = Number(reorderItems[key]['oredroc']['units-shipped-last-24-hrs'] || 0)
+		oredrocUnitsShippedLast7Days = Number(reorderItems[key]['oredroc']['units-shipped-last-7-days'] || 0)
+		oredrocUnitsShippedLast30Days = Number(reorderItems[key]['oredroc']['units-shipped-last-30-days'] || 0)
+		oredrocUnitsShippedLast90Days = Number(reorderItems[key]['oredroc']['units-shipped-last-90-days'] || 0)
+		oredrocUnitsShippedLast180Days = Number(reorderItems[key]['oredroc']['units-shipped-last-180-days'] || 0)
+		oredrocUnitsShippedLast365Days = Number(reorderItems[key]['oredroc']['units-shipped-last-365-days'] || 0)
 
 		reorderRow = [
 			snapshotDateFormatted || ''
@@ -273,81 +273,81 @@ buildReorderData = (reorderItems) ->
 			 ,productName
 			 ,salesRank
 			 ,productGroup
-			 ,Number(totalUnitsShippedLast24Hours)
-			 ,Number(totalUnitsShippedLast7Days)
-			 ,Number(totalUnitsShippedLast30Days)
-			 ,Number(totalUnitsShippedLast90Days)
-			 ,Number(totalUnitsShippedLast180Days)
-			 ,Number(totalUnitsShippedLast365Days)
+			 ,totalUnitsShippedLast24Hours
+			 ,totalUnitsShippedLast7Days
+			 ,totalUnitsShippedLast30Days
+			 ,totalUnitsShippedLast90Days
+			 ,totalUnitsShippedLast180Days
+			 ,totalUnitsShippedLast365Days
 			 ,numAfnNewSellers
 			 ,removeFromRestockReport
-			 ,Number(inStockOrOOSCrenstone)
-			 ,Number(inboundCrenstone)
-			 ,Number(daysOOSCrenstone)
-			 ,Number(last30DaysOfSalesWhenInStockCrenstone)
-			 ,Number(inStockOrOOSOredroc)
-			 ,Number(inboundOredroc)
-			 ,Number(daysOOSOredroc)
-			 ,Number(last30DaysOfSalesWhenInStockOredroc)
-			 ,Number(totalStockBothAccounts)
-			 ,Number(totalSalesBothAccounts30Days)
+			 ,inStockOrOOSCrenstone
+			 ,inboundCrenstone
+			 ,daysOOSCrenstone
+			 ,last30DaysOfSalesWhenInStockCrenstone
+			 ,inStockOrOOSOredroc
+			 ,inboundOredroc
+			 ,daysOOSOredroc
+			 ,last30DaysOfSalesWhenInStockOredroc
+			 ,totalStockBothAccounts
+			 ,totalSalesBothAccounts30Days
 			 ,seasonalTags
 			 ,oemMfgPartNumber
 			 ,oemMfg
 			 ,vendorPartNumber
 			 ,itemDescription
 			 ,vendorName
-			 ,parseFloat(vendorPrice)
-			 ,Number(quantityNeededPerASIN)
-			 ,parseFloat(totalPricePerASIN)
-			 ,Number(quantityNeededForRestockOrder3xOn30DaySales)
-			 ,Number(quantityNeededForRestockOrder6xOn30DaySales)
+			 ,vendorPrice
+			 ,quantityNeededPerASIN
+			 ,totalPricePerASIN
+			 ,quantityNeededForRestockOrder3xOn30DaySales
+			 ,quantityNeededForRestockOrder6xOn30DaySales
 			 ,closeoutRetailTag
 			 ,canOrderAgain
 			 ,sellingInAccounts
 			 ,hasStockInAccounts
 			 ,crenstoneSKU
 			 ,crenstoneFNSKU
-			 ,parseFloat(ourCurrentPriceInventoryCrenstone)
-			 ,parseFloat(lowestPrimePriceCrenstone)
-			 ,parseFloat(belowCurrentPriceCrenstone)
+			 ,ourCurrentPriceInventoryCrenstone
+			 ,lowestPrimePriceCrenstone
+			 ,belowCurrentPriceCrenstone
 			 ,brand
-			 ,parseFloat(yourPrice)
-			 ,parseFloat(salesPrice)
-			 ,parseFloat(estimatedFeeTotal)
-			 ,parseFloat(estimatedFutureFee)
-			 ,parseFloat(estimatedShippingCost)
-			 ,parseFloat(totalInventoryCost)
-			 ,parseFloat(overheadRate)
-			 ,parseFloat(profit)
-			 ,parseFloat(futureProfit)
-			 ,Number(crenstoneUnitsShippedLast24Hours)
-			 ,Number(crenstoneUnitsShippedLast7Days)
-			 ,Number(crenstoneUnitsShippedLast30Days)
-			 ,Number(crenstoneUnitsShippedLast90Days)
-			 ,Number(crenstoneUnitsShippedLast180Days)
-			 ,Number(crenstoneUnitsShippedLast365Days)
+			 ,yourPrice
+			 ,salesPrice
+			 ,estimatedFeeTotal
+			 ,estimatedFutureFee
+			 ,estimatedShippingCost
+			 ,totalInventoryCost
+			 ,overheadRate
+			 ,profit
+			 ,futureProfit
+			 ,crenstoneUnitsShippedLast24Hours
+			 ,crenstoneUnitsShippedLast7Days
+			 ,crenstoneUnitsShippedLast30Days
+			 ,crenstoneUnitsShippedLast90Days
+			 ,crenstoneUnitsShippedLast180Days
+			 ,crenstoneUnitsShippedLast365Days
 			 ,oredrocSKU
 			 ,oredrocFNSKU
-			 ,parseFloat(ourCurrentPriceInventoryOredroc)
-			 ,parseFloat(lowestPrimePriceOredroc)
-			 ,parseFloat(belowCurrentPriceOredroc)
+			 ,ourCurrentPriceInventoryOredroc
+			 ,lowestPrimePriceOredroc
+			 ,belowCurrentPriceOredroc
 			 ,brand
-			 ,parseFloat(yourPrice)
-			 ,parseFloat(salesPrice)
-			 ,parseFloat(estimatedFeeTotal)
-			 ,parseFloat(estimatedFutureFee)
-			 ,parseFloat(estimatedShippingCost)
-			 ,parseFloat(totalInventoryCost)
-			 ,parseFloat(overheadRate)
-			 ,parseFloat(profit)
-			 ,parseFloat(futureProfit)
-			 ,Number(oredrocUnitsShippedLast24Hours)
-			 ,Number(oredrocUnitsShippedLast7Days)
-			 ,Number(oredrocUnitsShippedLast30Days)
-			 ,Number(oredrocUnitsShippedLast90Days)
-			 ,Number(oredrocUnitsShippedLast180Days)
-			 ,Number(oredrocUnitsShippedLast365Days)
+			 ,yourPrice
+			 ,salesPrice
+			 ,estimatedFeeTotal
+			 ,estimatedFutureFee
+			 ,estimatedShippingCost
+			 ,totalInventoryCost
+			 ,overheadRate
+			 ,profit
+			 ,futureProfit
+			 ,oredrocUnitsShippedLast24Hours
+			 ,oredrocUnitsShippedLast7Days
+			 ,oredrocUnitsShippedLast30Days
+			 ,oredrocUnitsShippedLast90Days
+			 ,oredrocUnitsShippedLast180Days
+			 ,oredrocUnitsShippedLast365Days
 		]
 		reorderData.push(reorderRow)
 		asinKeys.add(asin)
@@ -413,32 +413,32 @@ buildReorderData = (reorderItems) ->
 
 calculateCalculatedOutputs = (data) ->
 	for row in data
-		totalStock = Number(row[13]) + Number(row[14]) + Number(row[17]) + Number(row[18])
-		totalSales = Number(row[16]) + Number(row[20])
-		totalPriceOfASIN = Number(row[29]) * Number(row[30])
+		totalStock = Number(row[13] || 0) + Number(row[14] || 0) + Number(row[17] || 0) + Number(row[18] || 0)
+		totalSales = Number(row[16] || 0) + Number(row[20] || 0)
+		totalPriceOfASIN = parseFloat(row[29] || 0) * parseFloat(row[30] || 0)
 		for row2 in data
 			if row[1] == row2[1] and row[26] != row2[26]
-				totalPriceOfASIN += Number(row2[29]) * Number(row[30])
-		quantityNeeded3x = totalSales * Number(row[30]) * 3
-		quantityNeeded6x = totalSales * Number(row[30]) * 6
+				totalPriceOfASIN += parseFloat(row2[29] || 0) * parseFloat(row[30] || 0)
+		quantityNeeded3x = totalSales * Number(row[30] || 0) * 3
+		quantityNeeded6x = totalSales * Number(row[30] || 0) * 6
 		overheadRate = totalPriceOfASIN / 5
-		estimatedShippingCost = if row[48] != null then Number(row[48]) else 0
-		profit = Number(row[45]) - totalPriceOfASIN - overheadRate - estimatedShippingCost - Number(row[46])
-		futureProfit = Number(row[45]) - totalPriceOfASIN - overheadRate - estimatedShippingCost - Number(row[47])
+		estimatedShippingCost = parseFloat(row[48] || 0)
+		profit = parseFloat(row[45] || 0) - totalPriceOfASIN - overheadRate - estimatedShippingCost - parseFloat(row[46] || 0)
+		futureProfit = parseFloat(row[45] || 0) - totalPriceOfASIN - overheadRate - estimatedShippingCost - parseFloat(row[47] || 0)
 
 		row[21] = totalStock
 		row[22] = totalSales
-		row[31] = if parseFloat(totalPriceOfASIN) != 0 then parseFloat(totalPriceOfASIN.toFixed(2)) else null
+		row[31] = if totalPriceOfASIN != 0 then totalPriceOfASIN.toFixed(2) else null
 		row[32] = if quantityNeeded3x != 0 then quantityNeeded3x else null
 		row[33] = if quantityNeeded6x != 0 then quantityNeeded6x else null
-		row[49] = if parseFloat(totalPriceOfASIN) != 0 then parseFloat(totalPriceOfASIN.toFixed(2)) else null
-		row[70] = if parseFloat(totalPriceOfASIN) != 0 then parseFloat(totalPriceOfASIN.toFixed(2)) else null
-		row[50] = parseFloat(overheadRate)
-		row[71] = parseFloat(overheadRate)
-		row[51] = "$" + parseFloat(profit.toFixed(2))
-		row[72] = "$" + parseFloat(profit.toFixed(2))
-		row[52] = "$" + parseFloat(futureProfit.toFixed(2))
-		row[73] = "$" + parseFloat(futureProfit.toFixed(2))
+		row[49] = if totalPriceOfASIN != 0 then totalPriceOfASIN.toFixed(2) else null
+		row[70] = if totalPriceOfASIN != 0 then totalPriceOfASIN.toFixed(2) else null
+		row[50] = overheadRate
+		row[71] = overheadRate
+		row[51] = if profit > 0 then parseFloat(profit.toFixed(2)) else 0
+		row[72] = if profit > 0 then parseFloat(profit.toFixed(2)) else 0
+		row[52] = if futureProfit > 0 then parseFloat(futureProfit.toFixed(2)) else 0
+		row[73] = if futureProfit > 0 then parseFloat(futureProfit.toFixed(2)) else 0
 
 sortInventoryDataByAsin = (data) ->
 	nameColumn = data.shift()
