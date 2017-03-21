@@ -351,10 +351,8 @@ buildReorderData = (reorderItems) ->
 		]
 		reorderData.push(reorderRow)
 		asinKeys.add(asin)
-	#TODO: get all manual input data for each asin, meaning compile all unique ASINs when building
-	#the rows, then query the database on all of those asins in the manual-input table
+
 	asinKeyArray = Array.from(asinKeys)
-	#TODO: Set Iterator to array and THEN join
 	asinKeyQuery = '(' + _.map(asinKeyArray, (asin) -> '\'' + asin + '\'').join(',') + ')'
 	selectQuery = 'SELECT * FROM \"manual-inputs\" WHERE asin IN ' + asinKeyQuery 
 	deferred = Q.defer()
