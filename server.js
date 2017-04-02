@@ -381,7 +381,7 @@
         }
         ++count;
       }
-      return Q.all(_.map(manualInputsToUpdate, function(row) {
+      return Q.all(_.each(manualInputsToUpdate, function(row) {
         return upsertIntoDb(row);
       })).then(function(result) {
         return res.redirect('/');
@@ -396,13 +396,14 @@
 
   upsertIntoDb = function(inputRow) {
     var inputRowValues, insertQuery, selectQuery, updateQuery;
+    if (inputRow[0] === void 0) {
+      return;
+    }
     inputRow = _.map(inputRow, function(val) {
       if (val !== null && val !== void 0 && val.length > 0) {
         return "'" + val + "'";
-      } else if (val === '') {
-        return "null";
       } else {
-        return val;
+        return "null";
       }
     });
     inputRowValues = inputRow.join(",");
@@ -415,12 +416,12 @@
     if (inputRow[1] === 'null') {
       selectQuery += ' AND \"crenstone-sku\" IS NULL';
     } else {
-      selectQuery += ' AND \"crenstone-sku\" = ' + inputRow[1];
+      selectQuery += ' AND \"crenstone-sku\"=' + inputRow[1];
     }
     if (inputRow[2] === 'null') {
       selectQuery += ' AND \"oredroc-sku\" IS NULL';
     } else {
-      selectQuery += ' AND \"oredroc-sku\" = ' + inputRow[2];
+      selectQuery += ' AND \"oredroc-sku\"=' + inputRow[2];
     }
     insertQuery = 'INSERT INTO \"manual-inputs\"(asin, \"crenstone-sku\", \"oredroc-sku\", \"remove-from-restock-report\", \"seasonal-tags\", \"oem-mfg-part-number\", \"oem-mfg\", \"vendor-part-number\", \"item-description\", \"vendor-name\", \"vendor-price\", \"quantity-needed-per-asin\", \"closeout-retail-tag\", \"can-order-again\", \"estimated-shipping-cost\", \"overhead-rate\") VALUES (' + inputRowValues + ')';
     updateQuery = 'UPDATE \"manual-inputs\" SET asin=' + inputRow[0] + ', \"crenstone-sku\"=' + inputRow[1] + ', \"oredroc-sku\"=' + inputRow[2] + ', \"remove-from-restock-report\"=' + inputRow[3] + ', \"seasonal-tags\"=' + inputRow[4] + ', \"oem-mfg-part-number\"=' + inputRow[5] + ', \"oem-mfg\"=' + inputRow[6] + ', \"vendor-part-number\"=' + inputRow[7] + ', \"item-description\"=' + inputRow[8] + ', \"vendor-name\"=' + inputRow[9] + ', \"vendor-price\"=' + inputRow[10] + ', \"quantity-needed-per-asin\"=' + inputRow[11] + ', \"closeout-retail-tag\"=' + inputRow[12] + ', \"can-order-again\"=' + inputRow[13] + ', \"estimated-shipping-cost\"=' + inputRow[14] + ', \"overhead-rate\"=' + inputRow[15] + ' WHERE id = ';

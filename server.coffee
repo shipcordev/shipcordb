@@ -496,7 +496,7 @@ parseAndStoreManualInputs = (file, req, res) ->
 					,overheadRate
 				])
 			++count
-		Q.all(_.map(manualInputsToUpdate, (row) -> upsertIntoDb(row)))
+		Q.all(_.each(manualInputsToUpdate, (row) -> upsertIntoDb(row)))
     .then (result) ->
     	res.redirect('/')
     .fail (err) ->
@@ -504,14 +504,15 @@ parseAndStoreManualInputs = (file, req, res) ->
     	console.log(err.stack || err)
 
 upsertIntoDb = (inputRow) ->
+	if inputRow[0] == undefined
+		return
 	inputRow = _.map(inputRow, (val) ->
 		if val != null and val != undefined and val.length > 0
 			"'" + val + "'"
-		else if val == ''
-			return "null"
 		else
-			val
+			return "null"
 	)
+
 	inputRowValues = inputRow.join(",")
 
 	selectQuery = 'SELECT id FROM \"manual-inputs\" WHERE asin=' + inputRow[0] + ' and \"vendor-part-number\"'
@@ -522,11 +523,11 @@ upsertIntoDb = (inputRow) ->
 	if inputRow[1] == 'null'
 		selectQuery += ' AND \"crenstone-sku\" IS NULL'
 	else
-		selectQuery += ' AND \"crenstone-sku\" = ' + inputRow[1]
+		selectQuery += ' AND \"crenstone-sku\"=' + inputRow[1]
 	if inputRow[2] == 'null'
 		selectQuery += ' AND \"oredroc-sku\" IS NULL'
 	else
-		selectQuery += ' AND \"oredroc-sku\" = ' + inputRow[2]
+		selectQuery += ' AND \"oredroc-sku\"=' + inputRow[2]
 	insertQuery = 'INSERT INTO \"manual-inputs\"(asin, \"crenstone-sku\", \"oredroc-sku\", \"remove-from-restock-report\", \"seasonal-tags\", \"oem-mfg-part-number\", \"oem-mfg\", \"vendor-part-number\", \"item-description\", \"vendor-name\", \"vendor-price\", \"quantity-needed-per-asin\", \"closeout-retail-tag\", \"can-order-again\", \"estimated-shipping-cost\", \"overhead-rate\") VALUES (' + inputRowValues + ')'
 	updateQuery = 'UPDATE \"manual-inputs\" SET asin=' + inputRow[0] +
 					', \"crenstone-sku\"=' + inputRow[1] +
