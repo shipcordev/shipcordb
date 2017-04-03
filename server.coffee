@@ -460,23 +460,59 @@ parseAndStoreManualInputs = (file, req, res) ->
 		count = 0
 		manualInputsToUpdate = []
 		for row in reorderSheet.data
-			if count > 0
+			asin = null
+			crenstoneSKU = null
+			oredrocSKU = null
+			removeFromRestockReport = null
+			seasonalTags = null
+			oemMfgPartNumber = null
+			oemMfg = null
+			vendorPartNumber = null
+			itemDescription = null
+			vendorName = null
+			vendorPrice = null
+			quantityNeededPerASIN = null
+			closeoutRetailTag = null
+			canOrderAgain = null
+			estimatedShippingCost = null
+			overheadRate = null
+			if count > 0 
+				###
+				Do not parse the headers. We need to check for existence because
+				not all rows are the same length (empty columns past the last filled in column
+				are not reflected in the row length!)
+				###
 				asin = row[1]
-				crenstoneSKU = row[38]
-				oredrocSKU = row[59]
-				removeFromRestockReport = row[12]
-				seasonalTags = row[23]
-				oemMfgPartNumber = row[24]
-				oemMfg = row[25]
-				vendorPartNumber = row[26]
-				itemDescription = row[27]
-				vendorName = row[28]
-				vendorPrice = row[29]
-				quantityNeededPerASIN = row[30]
-				closeoutRetailTag = row[34]
-				canOrderAgain = row[35]
-				estimatedShippingCost = row[48]
-				overheadRate = row[50]
+				if row[38] != null
+					crenstoneSKU = row[38]
+				if row[59] != null
+					oredrocSKU = row[59]
+				if row[12] != null
+					removeFromRestockReport = row[12]
+				if row[23] != null
+					seasonalTags = row[23]
+				if row[24] != null
+					oemMfgPartNumber = row[24]
+				if row[25] != null
+					oemMfg = row[25]
+				if row[26] != null
+					vendorPartNumber = row[26]
+				if row[27] != null
+					itemDescription = row[27]
+				if row[28] != null
+					vendorName = row[28]
+				if row[29] != null
+					vendorPrice = row[29]
+				if row[30] != null
+					quantityNeededPerASIN = row[30]
+				if row[34] != null
+					closeoutRetailTag = row[34]
+				if row[35] != null
+					canOrderAgain = row[35]
+				if row[48] != null
+					estimatedShippingCost = row[48]
+				if row[50] != null
+					overheadRate = row[50]
 				manualInputsToUpdate.push([
 					asin
 					,crenstoneSKU
@@ -507,10 +543,10 @@ upsertIntoDb = (inputRow) ->
 	if inputRow[0] == undefined
 		return
 	inputRow = _.map(inputRow, (val) ->
-		if val != null and val != undefined and val.length > 0
-			"'" + val + "'"
+		if val != null and val != undefined
+			return '\'' + val + '\''
 		else
-			return "null"
+			return 'null'
 	)
 
 	inputRowValues = inputRow.join(",")
@@ -529,23 +565,7 @@ upsertIntoDb = (inputRow) ->
 	else
 		selectQuery += ' AND \"oredroc-sku\"=' + inputRow[2]
 	insertQuery = 'INSERT INTO \"manual-inputs\"(asin, \"crenstone-sku\", \"oredroc-sku\", \"remove-from-restock-report\", \"seasonal-tags\", \"oem-mfg-part-number\", \"oem-mfg\", \"vendor-part-number\", \"item-description\", \"vendor-name\", \"vendor-price\", \"quantity-needed-per-asin\", \"closeout-retail-tag\", \"can-order-again\", \"estimated-shipping-cost\", \"overhead-rate\") VALUES (' + inputRowValues + ')'
-	updateQuery = 'UPDATE \"manual-inputs\" SET asin=' + inputRow[0] +
-					', \"crenstone-sku\"=' + inputRow[1] +
-					', \"oredroc-sku\"=' + inputRow[2] +
-					', \"remove-from-restock-report\"=' + inputRow[3] +
-					', \"seasonal-tags\"=' + inputRow[4] +
-					', \"oem-mfg-part-number\"=' + inputRow[5] +
-					', \"oem-mfg\"=' + inputRow[6] +
-					', \"vendor-part-number\"=' + inputRow[7] +
-					', \"item-description\"=' + inputRow[8] +
-					', \"vendor-name\"=' + inputRow[9] +
-					', \"vendor-price\"=' + inputRow[10] +
-					', \"quantity-needed-per-asin\"=' + inputRow[11] +
-					', \"closeout-retail-tag\"=' + inputRow[12] +
-					', \"can-order-again\"=' + inputRow[13] +
-					', \"estimated-shipping-cost\"=' + inputRow[14] +
-					', \"overhead-rate\"=' + inputRow[15] +
-					' WHERE id = '
+	updateQuery = 'UPDATE \"manual-inputs\" SET (asin, \"crenstone-sku\", \"oredroc-sku\", \"remove-from-restock-report\", \"seasonal-tags\", \"oem-mfg-part-number\", \"oem-mfg\", \"vendor-part-number\", \"item-description\", \"vendor-name\", \"vendor-price\", \"quantity-needed-per-asin\", \"closeout-retail-tag\", \"can-order-again\", \"estimated-shipping-cost\", \"overhead-rate\") = (' + inputRowValues + ') WHERE id='
 
 	db.sequelize.query(selectQuery, { type: db.sequelize.QueryTypes.SELECT})
 	.then (manualInputs) ->
