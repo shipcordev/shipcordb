@@ -358,52 +358,118 @@ buildReorderData = (reorderItems) ->
 	deferred = Q.defer()
 	db.sequelize.query(selectQuery, { type: db.sequelize.QueryTypes.SELECT})
 	.then (manualInputs) ->
+		newReorderRows = []
 		if manualInputs.length > 0
-			reorderDataByAsin = _.groupBy(reorderData, (row) -> row[1])
 			manualInputsByAsin = _.groupBy(manualInputs, (manualInput) -> manualInput['asin'])
 			for manualInputAsin in Object.keys(manualInputsByAsin)
-				#find reorderData that matches crenstoneSKU, oredrocSKU, asin, and vendorPartNumber
-				#but only if the length of reorderData matches manual input
-				#first step is to create as many rows as there are vendor part numbers
-				reorderIndices = []
-				reorderIndex = 0
-				for row in reorderData
-					if row[1] == manualInputAsin
-						break
-					reorderIndex++
-				if reorderIndex < reorderData.length
-					reorderIndices.push(reorderIndex)
-					if manualInputsByAsin[manualInputAsin].length > 1
-						lastReorderIndex = reorderData.length
-						numDuplicates = manualInputsByAsin[manualInputAsin].length - 1
-						reorderDataCopy = JSON.parse(JSON.stringify(reorderData[reorderIndex]))
-						while numDuplicates > 0
-							reorderData.push(reorderDataCopy)
-							reorderIndices.push(lastReorderIndex)
-							lastReorderIndex++
-							numDuplicates--
-
-					manualInputIndex = 0
-					while reorderIndices.length > 0	
-						currentIndex = reorderIndices.shift()
-						reorderData[currentIndex][12] = manualInputsByAsin[manualInputAsin][manualInputIndex]['remove-from-restock-report']
-						reorderData[currentIndex][23] = manualInputsByAsin[manualInputAsin][manualInputIndex]['seasonal-tags']
-						reorderData[currentIndex][24] = manualInputsByAsin[manualInputAsin][manualInputIndex]['oem-mfg-part-number']
-						reorderData[currentIndex][25] = manualInputsByAsin[manualInputAsin][manualInputIndex]['oem-mfg']
-						reorderData[currentIndex][26] = manualInputsByAsin[manualInputAsin][manualInputIndex]['vendor-part-number']
-						reorderData[currentIndex][27] = manualInputsByAsin[manualInputAsin][manualInputIndex]['item-description']
-						reorderData[currentIndex][28] = manualInputsByAsin[manualInputAsin][manualInputIndex]['vendor-name']
-						reorderData[currentIndex][29] = manualInputsByAsin[manualInputAsin][manualInputIndex]['vendor-price']
-						reorderData[currentIndex][30] = manualInputsByAsin[manualInputAsin][manualInputIndex]['quantity-needed-per-asin']
-						reorderData[currentIndex][34] = manualInputsByAsin[manualInputAsin][manualInputIndex]['closeout-retail-tag']
-						reorderData[currentIndex][35] = manualInputsByAsin[manualInputAsin][manualInputIndex]['can-order-again']
-						reorderData[currentIndex][48] = manualInputsByAsin[manualInputAsin][manualInputIndex]['estimated-shipping-cost']
-						reorderData[currentIndex][69] = manualInputsByAsin[manualInputAsin][manualInputIndex]['estimated-shipping-cost']
-						reorderData[currentIndex][50] = manualInputsByAsin[manualInputAsin][manualInputIndex]['overhead-rate']
-						reorderData[currentIndex][71] = manualInputsByAsin[manualInputAsin][manualInputIndex]['overhead-rate']
-						manualInputIndex++
-
-
+				for manualInput in manualInputsByAsin[manualInputAsin]
+					row = _.findIndex(reorderData, (data) ->
+						crenstoneSKU = manualInput['crenstone-sku'] || ''
+						oredrocSKU = manualInput['oredroc-sku'] || ''
+						data[1] == manualInputAsin and data[38] == crenstoneSKU and data[59] == oredrocSKU
+					)
+					if row == -1
+						reorderRow = [
+							''
+							 ,manualInput['asin']
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,manualInput['remove-from-restock-report']
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,manualInput['seasonal-tags']
+							 ,manualInput['oem-mfg-part-number']
+							 ,manualInput['oem-mfg']
+							 ,manualInput['vendor-part-number']
+							 ,manualInput['item-description']
+							 ,manualInput['vendor-name']
+							 ,manualInput['vendor-price']
+							 ,manualInput['quantity-needed-per-asin']
+							 ,''
+							 ,''
+							 ,''
+							 ,manualInput['closeout-retail-tag']
+							 ,manualInput['can-order-again']
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,manualInput['estimated-shipping-cost']
+							 ,''
+							 ,manualInput['overhead-rate']
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,manualInput['estimated-shipping-cost']
+							 ,''
+							 ,manualInput['overhead-rate']
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+							 ,''
+						]
+						newReorderRows.push(reorderRow)
+					else
+						reorderData[row][12] = manualInput['remove-from-restock-report']
+						reorderData[row][23] = manualInput['seasonal-tags']
+						reorderData[row][24] = manualInput['oem-mfg-part-number']
+						reorderData[row][25] = manualInput['oem-mfg']
+						reorderData[row][26] = manualInput['vendor-part-number']
+						reorderData[row][27] = manualInput['item-description']
+						reorderData[row][28] = manualInput['vendor-name']
+						reorderData[row][29] = manualInput['vendor-price']
+						reorderData[row][30] = manualInput['quantity-needed-per-asin']
+						reorderData[row][34] = manualInput['closeout-retail-tag']
+						reorderData[row][35] = manualInput['can-order-again']
+						reorderData[row][48] = manualInput['estimated-shipping-cost']
+						reorderData[row][69] = manualInput['estimated-shipping-cost']
+						reorderData[row][50] = manualInput['overhead-rate']
+						reorderData[row][71] = manualInput['overhead-rate']
+		for row in newReorderRows
+			reorderData.push(row)
 		calculateCalculatedOutputs(reorderData)
 		reorderData.unshift(outputReorderColumns)
 		deferred.resolve(reorderData)
