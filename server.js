@@ -272,10 +272,10 @@
         reorderData.push(row);
       }
       calculateCalculatedOutputs(reorderData);
-      reorderData.unshift(outputReorderColumns);
       reorderData = _.sortBy(reorderData, function(row) {
         return row[1];
       });
+      reorderData.unshift(outputReorderColumns);
       return deferred.resolve(reorderData);
     });
     return deferred.promise;

@@ -471,8 +471,8 @@ buildReorderData = (reorderItems) ->
 		for row in newReorderRows
 			reorderData.push(row)
 		calculateCalculatedOutputs(reorderData)
-		reorderData.unshift(outputReorderColumns)
 		reorderData = _.sortBy(reorderData, (row) -> row[1])
+		reorderData.unshift(outputReorderColumns)
 		deferred.resolve(reorderData)
 	deferred.promise
 
