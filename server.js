@@ -273,6 +273,9 @@
       }
       calculateCalculatedOutputs(reorderData);
       reorderData.unshift(outputReorderColumns);
+      reorderData = _.sortBy(reorderData, function(row) {
+        return row[1];
+      });
       return deferred.resolve(reorderData);
     });
     return deferred.promise;
@@ -378,7 +381,7 @@
           if (row[59] !== null) {
             oredrocSKU = row[59];
           }
-          if (row[12] !== null) {
+          if (row[12] !== null && row[12] !== '') {
             removeFromRestockReport = row[12];
           }
           if (row[23] !== null) {
@@ -408,7 +411,7 @@
           if (row[34] !== null) {
             closeoutRetailTag = row[34];
           }
-          if (row[35] !== null) {
+          if (row[35] !== null && row[35] !== '') {
             canOrderAgain = row[35];
           }
           if (row[48] !== null) {
@@ -417,7 +420,7 @@
           if (row[50] !== null) {
             overheadRate = row[50];
           }
-          manualInputsToUpdate.push([asin, crenstoneSKU, oredrocSKU, removeFromRestockReport, seasonalTags, oemMfgPartNumber, oemMfg, vendorPartNumber, itemDescription, vendorName, vendorPrice, quantityNeededPerASIN, closeoutRetailTag, canOrderAgain, estimatedShippingCost, overheadRate]);
+          manualInputsToUpdate.push([asin, crenstoneSKU, oredrocSKU, removeFromRestockReport, seasonalTags, oemMfgPartNumber, oemMfg, vendorPartNumber, itemDescription, vendorName, vendorPrice, quantityNeededPerASIN, closeoutRetailTag, canOrderAgain || false, estimatedShippingCost, overheadRate]);
         }
         ++count;
       }
@@ -440,7 +443,9 @@
       return;
     }
     inputRow = _.map(inputRow, function(val) {
-      if (val !== null && val !== void 0) {
+      if (typeof val === "boolean") {
+        return val;
+      } else if (val !== null && val !== void 0) {
         return '\'' + val + '\'';
       } else {
         return 'null';

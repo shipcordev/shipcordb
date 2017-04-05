@@ -472,6 +472,7 @@ buildReorderData = (reorderItems) ->
 			reorderData.push(row)
 		calculateCalculatedOutputs(reorderData)
 		reorderData.unshift(outputReorderColumns)
+		reorderData = _.sortBy(reorderData, (row) -> row[1])
 		deferred.resolve(reorderData)
 	deferred.promise
 
@@ -553,7 +554,7 @@ parseAndStoreManualInputs = (file, req, res) ->
 					crenstoneSKU = row[38]
 				if row[59] != null
 					oredrocSKU = row[59]
-				if row[12] != null
+				if row[12] != null and row[12] != ''
 					removeFromRestockReport = row[12]
 				if row[23] != null
 					seasonalTags = row[23]
@@ -573,7 +574,7 @@ parseAndStoreManualInputs = (file, req, res) ->
 					quantityNeededPerASIN = row[30]
 				if row[34] != null
 					closeoutRetailTag = row[34]
-				if row[35] != null
+				if row[35] != null and row[35] != ''
 					canOrderAgain = row[35]
 				if row[48] != null
 					estimatedShippingCost = row[48]
@@ -593,7 +594,7 @@ parseAndStoreManualInputs = (file, req, res) ->
 					,vendorPrice
 					,quantityNeededPerASIN
 					,closeoutRetailTag
-					,canOrderAgain
+					,canOrderAgain || false
 					,estimatedShippingCost
 					,overheadRate
 				])
@@ -609,7 +610,9 @@ upsertIntoDb = (inputRow) ->
 	if inputRow[0] == undefined
 		return
 	inputRow = _.map(inputRow, (val) ->
-		if val != null and val != undefined
+		if typeof(val) == "boolean"
+			return val
+		else if val != null and val != undefined
 			return '\'' + val + '\''
 		else
 			return 'null'
