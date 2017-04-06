@@ -148,11 +148,11 @@
       inStockOrOOSCrenstone = reorderItems[key]['crenstone']['sellable-quantity'] || '';
       inboundCrenstone = reorderItems[key]['crenstone']['inbound-recommend-quantity'] || '';
       daysOOSCrenstone = reorderItems[key]['crenstone']['days-OOS'] || '';
-      last30DaysOfSalesWhenInStockCrenstone = reorderItems[key]['crenstone']['units-shipped-last-30-days'] || 0;
+      last30DaysOfSalesWhenInStockCrenstone = Number(reorderItems[key]['crenstone']['units-shipped-last-30-days'] || 0);
       inStockOrOOSOredroc = reorderItems[key]['oredroc']['sellable-quantity'] || '';
       inboundOredroc = reorderItems[key]['oredroc']['inbound-recommend-quantity'] || '';
       daysOOSOredroc = reorderItems[key]['oredroc']['days-OOS'] || '';
-      last30DaysOfSalesWhenInStockOredroc = reorderItems[key]['oredroc']['units-shipped-last-30-days'] || 0;
+      last30DaysOfSalesWhenInStockOredroc = Number(reorderItems[key]['oredroc']['units-shipped-last-30-days'] || 0);
       totalStockBothAccounts = Number(reorderItems[key]['crenstone']['sellable-quantity'] || 0) + Number(reorderItems[key]['crenstone']['in-bound-quantity'] || 0) + Number(reorderItems[key]['oredroc']['sellable-quantity'] || 0) + Number(reorderItems[key]['oredroc']['in-bound-quantity'] || 0);
       totalSalesBothAccounts30Days = last30DaysOfSalesWhenInStockCrenstone + last30DaysOfSalesWhenInStockOredroc;
       seasonalTags = reorderItems[key]['crenstone']['seasonal-tags'] || reorderItems[key]['oredroc']['seasonal-tags'] || '';
@@ -285,7 +285,7 @@
   };
 
   calculateCalculatedOutputs = function(data) {
-    var estimatedShippingCost, futureProfit, i, j, len, len1, overheadRate, profit, quantityNeeded3x, quantityNeeded6x, results, row, row2, totalPriceOfASIN, totalSales, totalStock;
+    var estimatedShippingCost, futureProfit, i, j, len, len1, overheadRate, profit, results, row, row2, totalPriceOfASIN, totalSales, totalStock;
     results = [];
     for (i = 0, len = data.length; i < len; i++) {
       row = data[i];
@@ -298,8 +298,6 @@
           totalPriceOfASIN += parseFloat(row2[29] || 0) * parseFloat(row[30] || 0);
         }
       }
-      quantityNeeded3x = totalSales * Number(row[30] || 0) * 3;
-      quantityNeeded6x = totalSales * Number(row[30] || 0) * 6;
       overheadRate = totalPriceOfASIN / 5;
       estimatedShippingCost = parseFloat(row[48] || 0);
       profit = parseFloat(row[45] || 0) - totalPriceOfASIN - overheadRate - estimatedShippingCost - parseFloat(row[46] || 0);
@@ -307,8 +305,6 @@
       row[21] = totalStock;
       row[22] = totalSales;
       row[31] = totalPriceOfASIN !== 0 ? totalPriceOfASIN.toFixed(2) : null;
-      row[32] = quantityNeeded3x !== 0 ? quantityNeeded3x : null;
-      row[33] = quantityNeeded6x !== 0 ? quantityNeeded6x : null;
       row[49] = totalPriceOfASIN !== 0 ? totalPriceOfASIN.toFixed(2) : null;
       row[70] = totalPriceOfASIN !== 0 ? totalPriceOfASIN.toFixed(2) : null;
       row[50] = overheadRate;
