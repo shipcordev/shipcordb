@@ -204,13 +204,13 @@ buildReorderData = (reorderItems) ->
 		inStockOrOOSCrenstone = reorderItems[key]['crenstone']['sellable-quantity'] || ''
 		inboundCrenstone = reorderItems[key]['crenstone']['inbound-recommend-quantity'] || ''
 		daysOOSCrenstone = reorderItems[key]['crenstone']['days-OOS'] || ''
-		last30DaysOfSalesWhenInStockCrenstone = reorderItems[key]['crenstone']['units-shipped-last-30-days'] || ''
+		last30DaysOfSalesWhenInStockCrenstone = reorderItems[key]['crenstone']['units-shipped-last-30-days'] || 0
 		inStockOrOOSOredroc = reorderItems[key]['oredroc']['sellable-quantity'] || ''
 		inboundOredroc = reorderItems[key]['oredroc']['inbound-recommend-quantity'] || ''
 		daysOOSOredroc = reorderItems[key]['oredroc']['days-OOS'] || ''
-		last30DaysOfSalesWhenInStockOredroc = reorderItems[key]['oredroc']['units-shipped-last-30-days'] || ''
+		last30DaysOfSalesWhenInStockOredroc = reorderItems[key]['oredroc']['units-shipped-last-30-days'] || 0
 		totalStockBothAccounts = Number(reorderItems[key]['crenstone']['sellable-quantity'] || 0) + Number(reorderItems[key]['crenstone']['in-bound-quantity'] || 0) + Number(reorderItems[key]['oredroc']['sellable-quantity'] || 0) + Number(reorderItems[key]['oredroc']['in-bound-quantity'] || 0)
-		totalSalesBothAccounts30Days = Number(reorderItems[key]['crenstone']['units-shipped-last-30-days'] || 0) + Number(reorderItems[key]['oredroc']['units-shipped-last-30-days'] || 0)
+		totalSalesBothAccounts30Days = last30DaysOfSalesWhenInStockCrenstone + last30DaysOfSalesWhenInStockOredroc
 		seasonalTags = reorderItems[key]['crenstone']['seasonal-tags'] || reorderItems[key]['oredroc']['seasonal-tags'] || ''
 		oemMfgPartNumber = reorderItems[key]['crenstone']['oem-mfg-part-number'] || reorderItems[key]['oredroc']['oem-mfg-part-number'] || ''
 		oemMfg = reorderItems[key]['crenstone']['oem-mfg'] || reorderItems[key]['oredroc']['oem-mfg'] || ''
@@ -369,30 +369,33 @@ buildReorderData = (reorderItems) ->
 						data[1] == manualInputAsin and data[38] == crenstoneSKU and data[59] == oredrocSKU
 					)
 					if row == -1
+						asinRow = _.findIndex(reorderData, (data) ->
+							data[1] == manualInputAsin
+						)
 						reorderRow = [
-							''
+							 reorderData[asinRow][0]
 							 ,manualInput['asin']
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
+							 ,reorderData[asinRow][2]
+							 ,reorderData[asinRow][3]
+							 ,reorderData[asinRow][4]
+							 ,reorderData[asinRow][5]
+							 ,reorderData[asinRow][6]
+							 ,reorderData[asinRow][7]
+							 ,reorderData[asinRow][8]
+							 ,reorderData[asinRow][9]
+							 ,reorderData[asinRow][10]
+							 ,reorderData[asinRow][11]
 							 ,manualInput['remove-from-restock-report']
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
+							 ,reorderData[asinRow][13]
+							 ,reorderData[asinRow][14]
+							 ,reorderData[asinRow][15]
+							 ,reorderData[asinRow][16]
+							 ,reorderData[asinRow][17]
+							 ,reorderData[asinRow][18]
+							 ,reorderData[asinRow][19]
+							 ,reorderData[asinRow][20]
+							 ,reorderData[asinRow][21]
+							 ,reorderData[asinRow][22]
 							 ,manualInput['seasonal-tags']
 							 ,manualInput['oem-mfg-part-number']
 							 ,manualInput['oem-mfg']
@@ -401,55 +404,55 @@ buildReorderData = (reorderItems) ->
 							 ,manualInput['vendor-name']
 							 ,manualInput['vendor-price']
 							 ,manualInput['quantity-needed-per-asin']
-							 ,''
-							 ,''
-							 ,''
+							 ,reorderData[asinRow][31]
+							 ,reorderData[asinRow][32]
+							 ,reorderData[asinRow][33]
 							 ,manualInput['closeout-retail-tag']
 							 ,manualInput['can-order-again']
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
+							 ,reorderData[asinRow][36]
+							 ,reorderData[asinRow][37]
+							 ,reorderData[asinRow][38]
+							 ,reorderData[asinRow][39]
+							 ,reorderData[asinRow][40]
+							 ,reorderData[asinRow][41]
+							 ,reorderData[asinRow][42]
+							 ,reorderData[asinRow][43]
+							 ,reorderData[asinRow][44]
+							 ,reorderData[asinRow][45]
+							 ,reorderData[asinRow][46]
+							 ,reorderData[asinRow][47]
 							 ,manualInput['estimated-shipping-cost']
-							 ,''
+							 ,reorderData[asinRow][49]
 							 ,manualInput['overhead-rate']
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
+							 ,reorderData[asinRow][51]
+							 ,reorderData[asinRow][52]
+							 ,reorderData[asinRow][53]
+							 ,reorderData[asinRow][54]
+							 ,reorderData[asinRow][55]
+							 ,reorderData[asinRow][56]
+							 ,reorderData[asinRow][57]
+							 ,reorderData[asinRow][58]
+							 ,reorderData[asinRow][59]
+							 ,reorderData[asinRow][60]
+							 ,reorderData[asinRow][61]
+							 ,reorderData[asinRow][62]
+							 ,reorderData[asinRow][63]
+							 ,reorderData[asinRow][64]
+							 ,reorderData[asinRow][65]
+							 ,reorderData[asinRow][66]
+							 ,reorderData[asinRow][67]
+							 ,reorderData[asinRow][68]
 							 ,manualInput['estimated-shipping-cost']
-							 ,''
+							 ,reorderData[asinRow][70]
 							 ,manualInput['overhead-rate']
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
-							 ,''
+							 ,reorderData[asinRow][72]
+							 ,reorderData[asinRow][73]
+							 ,reorderData[asinRow][74]
+							 ,reorderData[asinRow][75]
+							 ,reorderData[asinRow][76]
+							 ,reorderData[asinRow][77]
+							 ,reorderData[asinRow][78]
+							 ,reorderData[asinRow][79]
 						]
 						newReorderRows.push(reorderRow)
 					else
