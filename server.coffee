@@ -692,26 +692,17 @@ else
 			originalFormattedDate = date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate()
 			
 			#get all report dates for both seller accounts, then grab the latest time snapshot for each to grab the reports
-			oredrocInventoryDateQuery = 'SELECT * FROM \"report-snapshot-dates\" WHERE seller=\'oredroc\' AND type=\'inventory-health\' ORDER BY \"snapshot-date\" DESC'
-			crenstoneInventoryDateQuery = 'SELECT * FROM \"report-snapshot-dates\" WHERE seller=\'crenstone\' AND type=\'inventory-health\' ORDER BY \"snapshot-date\" DESC'
 			oredrocFeesDateQuery = 'SELECT * FROM \"report-snapshot-dates\" WHERE seller=\'oredroc\' AND type=\'fba-fees\' ORDER BY \"snapshot-date\" DESC'
 			crenstoneFeesDateQuery = 'SELECT * FROM \"report-snapshot-dates\" WHERE seller=\'crenstone\' AND type=\'fba-fees\' ORDER BY \"snapshot-date\" DESC'
 
-			Q.all([db.sequelize.query(oredrocInventoryDateQuery), db.sequelize.query(crenstoneInventoryDateQuery), db.sequelize.query(oredrocFeesDateQuery), db.sequelize.query(crenstoneFeesDateQuery)])
-				.spread (oredrocInventoryDateResult, crenstoneInventoryDateResult, oredrocFeesDateResult, crenstoneFeesDateResult) ->
-					if oredrocInventoryDateResult[1].rowCount == 0 and crenstoneInventoryDateResult[1].rowCount == 0 and oredrocFeesDateResult[1].rowCount == 0 and crenstoneFeesDateResult[1].rowCount == 0
+			Q.all([db.sequelize.query(oredrocFeesDateQuery), db.sequelize.query(crenstoneFeesDateQuery)])
+				.spread (oredrocFeesDateResult, crenstoneFeesDateResult) ->
+					if oredrocFeesDateResult[1].rowCount == 0 and crenstoneFeesDateResult[1].rowCount == 0
 						res.redirect('/')
 					else
-						oredrocInventoryByDateQuery = 'SELECT * FROM "inventory-health" WHERE seller=\'oredroc\''
-						if oredrocInventoryDateResult[1].rowCount > 0
-							oredrocInventoryDate = new Date(oredrocInventoryDateResult[0][0]['snapshot-date'])
-							oredrocInventoryDateFormatted = oredrocInventoryDate.getFullYear() + '-' + (oredrocInventoryDate.getMonth()+1) + '-' + oredrocInventoryDate.getDate()
-							oredrocInventoryByDateQuery += ' AND \"snapshot-date\"=\'' + oredrocInventoryDateFormatted + '\''
-						crenstoneInventoryByDateQuery = 'SELECT * FROM "inventory-health" WHERE seller=\'crenstone\''
-						if crenstoneInventoryDateResult[1].rowCount > 0
-							crenstoneInventoryDate = new Date(crenstoneInventoryDateResult[0][0]['snapshot-date'])
-							crenstoneInventoryDateFormatted = crenstoneInventoryDate.getFullYear() + '-' + (crenstoneInventoryDate.getMonth()+1) + '-' + crenstoneInventoryDate.getDate()
-							crenstoneInventoryByDateQuery += ' AND \"snapshot-date\"=\'' + crenstoneInventoryDateFormatted + '\''
+						oredrocInventoryByDateQuery = 'SELECT * FROM "inventory-health" i INNER JOIN (SELECT asin, max("snapshot-date") as maxdate FROM "inventory-health" GROUP BY asin) ih ON i.asin = ih.asin AND i."snapshot-date" = ih.maxdate AND i.seller=\'oredroc\''
+						crenstoneInventoryByDateQuery = 'SELECT * FROM "inventory-health" i INNER JOIN (SELECT asin, max("snapshot-date") as maxdate FROM "inventory-health" GROUP BY asin) ih ON i.asin = ih.asin AND i."snapshot-date" = ih.maxdate AND i.seller=\'crenstone\''
+						
 						oredrocFeesByDateQuery = 'SELECT * FROM "fba-fees" WHERE seller=\'oredroc\''
 						if oredrocFeesDateResult[1].rowCount > 0
 							oredrocFeesDate = new Date(oredrocFeesDateResult[0][0]['snapshot-date'])	
