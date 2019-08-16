@@ -833,13 +833,9 @@ else
 			date = new Date()
 			originalFormattedDate = date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate()
 			
-			#get all report dates for both seller accounts, then grab the latest time snapshot for each to grab the reports
 			deleteManualInputsQuery = 'DELETE FROM \"manual-inputs\"'
-			deleteSnapshotDatesQuery = 'DELETE FROM \"report-snapshot-dates\"'
-			deleteInventoryHealthQuery = 'DELETE FROM \"inventory-health\"'
-			deleteFbaFeesQuery = 'DELETE FROM \"fba-fees\"'
 
-			Q.all([db.sequelize.query(deleteManualInputsQuery), db.sequelize.query(deleteSnapshotDatesQuery), db.sequelize.query(deleteInventoryHealthQuery), db.sequelize.query(deleteFbaFeesQuery)])
+			db.sequelize.query(deleteManualInputsQuery)
 			.then () ->
 				res.sendStatus(200)
 			.catch (err) ->
