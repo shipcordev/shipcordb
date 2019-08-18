@@ -20,5 +20,5 @@ block content
 			| Note: After downloading the reorder file, simply fill in your manual values into the spreadsheet and reupload the spreadsheet. You can then download it once more to get all of the calculated values along with the manual inputs.
 	div.row(style="margin-top:20px")
 		div.col-lg-3.col-md-6
-			a.btn.btn-default.btn-block(href="/database/delete")
+			a.btn.btn-default.btn-block(href="/database/delete" onclick="return confirm('Are you sure you want to delete the database? This action cannot be undone.')")
 				| Delete Database
