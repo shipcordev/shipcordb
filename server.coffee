@@ -71,7 +71,7 @@ if !config.IS_WORKER
 	)
 
 	passport.deserializeUser((id, done) ->
-		db.User.findById(id)
+		db.User.findByPk(id)
 		.then (user) ->
 			done(null, user.dataValues)
 	)
