@@ -168,7 +168,7 @@ buildReorderData = (reorderItems) ->
 			reorderItems[key]['crenstone'] = {}
 		if reorderItems[key]['oredroc'] == undefined
 			reorderItems[key]['oredroc'] = {}
-		
+
 		snapshotDate = null
 		snapshotDateFormatted = null
 		if reorderItems[key]["crenstone"] != undefined and reorderItems[key]["crenstone"]["snapshot-date"] != undefined
@@ -179,7 +179,7 @@ buildReorderData = (reorderItems) ->
 			snapshotDateFormatted = snapshotDate.getFullYear() + '-' + (snapshotDate.getMonth()+1) + '-' + snapshotDate.getDate()
 		asin = reorderItems[key]['crenstone']['asin'] || reorderItems[key]['oredroc']['asin'] || ''
 		productName = reorderItems[key]['crenstone']['product-name'] || reorderItems[key]['oredroc']['product-name'] || ''
-		salesRank = reorderItems[key]['crenstone']['sales-rank'] || reorderItems[key]['oredroc']['sales-rank'] || '' 
+		salesRank = reorderItems[key]['crenstone']['sales-rank'] || reorderItems[key]['oredroc']['sales-rank'] || ''
 		productGroup = reorderItems[key]['crenstone']['product-group'] || reorderItems[key]['oredroc']['product-group'] || ''
 		totalUnitsShippedLast24Hours = Number(reorderItems[key]['crenstone']['units-shipped-last-24-hrs
 '] || 0) + Number(reorderItems[key]['oredroc']['units-shipped-last-24-hrs
@@ -354,7 +354,7 @@ buildReorderData = (reorderItems) ->
 
 	asinKeyArray = Array.from(asinKeys)
 	asinKeyQuery = '(' + _.map(asinKeyArray, (asin) -> '\'' + asin + '\'').join(',') + ')'
-	selectQuery = 'SELECT * FROM \"manual-inputs\" WHERE asin IN ' + asinKeyQuery 
+	selectQuery = 'SELECT * FROM \"manual-inputs\" WHERE asin IN ' + asinKeyQuery
 	deferred = Q.defer()
 	db.sequelize.query(selectQuery, { type: db.sequelize.QueryTypes.SELECT})
 	.then (manualInputs) ->
@@ -542,7 +542,7 @@ parseAndStoreManualInputs = (file, req, res) ->
 			canOrderAgain = null
 			estimatedShippingCost = null
 			overheadRate = null
-			if count > 0 
+			if count > 0
 				###
 				Do not parse the headers. We need to check for existence because
 				not all rows are the same length (empty columns past the last filled in column
@@ -690,7 +690,7 @@ else
 		else
 			date = new Date()
 			originalFormattedDate = date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate()
-			
+
 			#get all report dates for both seller accounts, then grab the latest time snapshot for each to grab the reports
 			oredrocFeesDateQuery = 'SELECT * FROM \"report-snapshot-dates\" WHERE seller=\'oredroc\' AND type=\'fba-fees\' ORDER BY \"snapshot-date\" DESC'
 			crenstoneFeesDateQuery = 'SELECT * FROM \"report-snapshot-dates\" WHERE seller=\'crenstone\' AND type=\'fba-fees\' ORDER BY \"snapshot-date\" DESC'
@@ -702,10 +702,10 @@ else
 					else
 						oredrocInventoryByDateQuery = 'SELECT * FROM "inventory-health" i INNER JOIN (SELECT asin, max("snapshot-date") as maxdate FROM "inventory-health" GROUP BY asin) ih ON i.asin = ih.asin AND i."snapshot-date" = ih.maxdate AND i.seller=\'oredroc\''
 						crenstoneInventoryByDateQuery = 'SELECT * FROM "inventory-health" i INNER JOIN (SELECT asin, max("snapshot-date") as maxdate FROM "inventory-health" GROUP BY asin) ih ON i.asin = ih.asin AND i."snapshot-date" = ih.maxdate AND i.seller=\'crenstone\''
-						
+
 						oredrocFeesByDateQuery = 'SELECT * FROM "fba-fees" WHERE seller=\'oredroc\''
 						if oredrocFeesDateResult[1].rowCount > 0
-							oredrocFeesDate = new Date(oredrocFeesDateResult[0][0]['snapshot-date'])	
+							oredrocFeesDate = new Date(oredrocFeesDateResult[0][0]['snapshot-date'])
 							oredrocFeesDateFormatted = oredrocFeesDate.getFullYear() + '-' + (oredrocFeesDate.getMonth()+1) + '-' + oredrocFeesDate.getDate()
 							oredrocFeesByDateQuery += ' AND \"snapshot-date\"=\'' + oredrocFeesDateFormatted + '\''
 						crenstoneFeesByDateQuery = 'SELECT * FROM "fba-fees" WHERE seller=\'crenstone\''
@@ -714,10 +714,10 @@ else
 							crenstoneFeesDateFormatted = crenstoneFeesDate.getFullYear() + '-' + (crenstoneFeesDate.getMonth()+1) + '-' + crenstoneFeesDate.getDate()
 							crenstoneFeesByDateQuery += ' AND \"snapshot-date\"=\'' + crenstoneFeesDateFormatted + '\''
 
-						Q.all([db.sequelize.query(oredrocInventoryByDateQuery, { type: db.sequelize.QueryTypes.SELECT}), 
+						Q.all([db.sequelize.query(oredrocInventoryByDateQuery, { type: db.sequelize.QueryTypes.SELECT}),
 								db.sequelize.query(oredrocFeesByDateQuery, { type: db.sequelize.QueryTypes.SELECT})
 								db.sequelize.query(crenstoneInventoryByDateQuery, { type: db.sequelize.QueryTypes.SELECT})
-								db.sequelize.query(crenstoneFeesByDateQuery, { type: db.sequelize.QueryTypes.SELECT})						
+								db.sequelize.query(crenstoneFeesByDateQuery, { type: db.sequelize.QueryTypes.SELECT})
 							])
 							.spread (oredrocInventoryResult, oredrocFeesResult, crenstoneInventoryResult, crenstoneFeesResult) ->
 								if oredrocInventoryResult.length == 0 and oredrocFeesResult.length == 0 and crenstoneInventoryResult.length == 0 and crenstoneFeesResult.length == 0
@@ -792,7 +792,7 @@ else
 													formattedDate = date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate()
 													rowData.push(formattedDate)
 												else if key != 'id' and key != 'seller'
-													rowData.push(row[key])	
+													rowData.push(row[key])
 												reorderItems[uniqueKey]["crenstone"][key] = row[key]
 											rowData.push('Crenstone')
 											inventoryData.push(rowData)
@@ -832,10 +832,11 @@ else
 		else
 			date = new Date()
 			originalFormattedDate = date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate()
-			
-			deleteManualInputsQuery = 'DELETE FROM \"manual-inputs\"'
 
-			db.sequelize.query(deleteManualInputsQuery)
+			deleteManualInputsQuery = 'DELETE FROM \"manual-inputs\"'
+			deleteReportSnapshotDatesQuery = 'DELETE FROM \"report-snapshot-dates\"'
+
+			Q.all([db.sequelize.query(deleteManualInputsQuery), db.sequelize.query(deleteReportSnapshotDatesQuery)])
 			.then () ->
 				res.sendStatus(200)
 			.catch (err) ->
@@ -908,7 +909,7 @@ else
 			res.redirect('/')
 		else
 			busboy = new Busboy({
-				headers: req.headers, 
+				headers: req.headers,
 				limits: {
 				  fileSize: 500 * 1024 * 1024 # 500 MB
 				}
