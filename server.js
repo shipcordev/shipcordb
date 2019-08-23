@@ -732,15 +732,15 @@
       }
     });
     app.get('/database/delete', function(req, res) {
-      var date, deleteManualInputsQuery, deleteReportSnapshotDatesQuery, originalFormattedDate;
+      var date, deleteInventoryHealthQuery, deleteManualInputsQuery, originalFormattedDate;
       if (!req.user) {
         return res.redirect('/');
       } else {
         date = new Date();
         originalFormattedDate = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
         deleteManualInputsQuery = 'DELETE FROM \"manual-inputs\"';
-        deleteReportSnapshotDatesQuery = 'DELETE FROM \"report-snapshot-dates\"';
-        return Q.all([db.sequelize.query(deleteManualInputsQuery), db.sequelize.query(deleteReportSnapshotDatesQuery)]).then(function() {
+        deleteInventoryHealthQuery = 'DELETE FROM \"inventory-health\" WHERE \"snapshot-date\" < current_date - 2';
+        return Q.all([db.sequelize.query(deleteManualInputsQuery), db.sequelize.query(deleteInventoryHealthQuery)]).then(function() {
           return res.sendStatus(200);
         })["catch"](function(err) {
           return console.log(err);
