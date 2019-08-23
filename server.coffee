@@ -834,9 +834,9 @@ else
 			originalFormattedDate = date.getFullYear() + '-' + (date.getMonth()+1) + '-' + date.getDate()
 
 			deleteManualInputsQuery = 'DELETE FROM \"manual-inputs\"'
-			deleteReportSnapshotDatesQuery = 'DELETE FROM \"report-snapshot-dates\"'
+			deleteInventoryHealthQuery = 'DELETE FROM \"inventory-health\" WHERE \"snapshot-date\" > current_date - 2'
 
-			Q.all([db.sequelize.query(deleteManualInputsQuery), db.sequelize.query(deleteReportSnapshotDatesQuery)])
+			Q.all([db.sequelize.query(deleteManualInputsQuery), db.sequelize.query(deleteInventoryHealthQuery)])
 			.then () ->
 				res.sendStatus(200)
 			.catch (err) ->
