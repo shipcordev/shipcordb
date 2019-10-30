@@ -21,7 +21,7 @@
     "pg": "^6.1.2",
     "pug": "^2.0.0-beta11",
     "q": "^1.4.1",
-    "sequelize": "^5.15.0",
+    "sequelize": "^5.15.1",
     "stream-to-array": "^2.3.0",
     "underscore": "^1.8.3"
   },
