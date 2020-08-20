@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "dependencies": {
-    "bcrypt": "^3.0.6",
+    "bcrypt": "^5.0.0",
     "body-parser": "^1.16.0",
     "busboy": "^0.2.14",
     "coffee-script": "^1.12.3",
