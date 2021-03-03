@@ -19,7 +19,7 @@
     "passport": "^0.3.2",
     "passport-local": "^1.0.0",
     "pg": "^6.1.2",
-    "pug": "^2.0.0-beta11",
+    "pug": "^3.0.1",
     "q": "^1.4.1",
     "sequelize": "^5.15.0",
     "stream-to-array": "^2.3.0",
