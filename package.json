@@ -23,7 +23,7 @@
     "q": "^1.4.1",
     "sequelize": "^5.15.0",
     "stream-to-array": "^2.3.0",
-    "underscore": "^1.8.3"
+    "underscore": "^1.12.1"
   },
   "devDependencies": {},
   "scripts": {
